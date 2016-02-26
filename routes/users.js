@@ -19,58 +19,90 @@ function isLoggedIn(req, res, next){
 // --- 6. 회원 가입 --- //
 router.post('/', function (req, res, next) {
 
-    //var username = req.body.username;
-    //var email = req.body.email;
-    //var password = req.body.password;
-    //var birthday = req.body.birthday;
-    //
-    ////1 . salt generation
-    //function generateSalt(callback){
-    //    var rounds = 10;
-    //    bcrypt.genSalt(rounds, function(err, salt){
-    //       if(err){
-    //           console.log("salt error...");
-    //           callback(err);
-    //       }else{
-    //           callback(null, salt);
-    //       }
-    //    });
-    //}
-    //
-    //// 2. hash password generation
-    //function generateHashPassword(salt, callback){
-    //    bcrypt.hash(password, salt, function(err, hashPassword){
-    //       if(err){
-    //           console.log("hesh error...");
-    //           callback(err);
-    //       } else{
-    //           callback(null, hashPassword);
-    //       }
-    //    });
-    //}
-    //
-    //// 3. get connection
-    //function getConnection(hashPassword, callback){
-    //    pool.getConnection(function(err, connection){
-    //        if(err){
-    //            console.log("connection error...");
-    //            callback(err);
-    //        }else{
-    //            callback(null, connection, hashPassword);
-    //        }
-    //    });
-    //}
-    //
-    //// 4. DB insert
-    //function insertMember(connection, hashPassword, callback) {
-    //    var sql = "insert into "
-    //}
+    if(req.secure) {
+
+        var username = req.body.username;
+        var password = req.body.password;
+        var email = req.body.email;
+        var exctypeid = 3;
+        var usertype = 1;
 
 
+        // 1. salt generation -- 원본에 대한 보안성을 높이기 위해서 rainbow table에 salt값을 추가
+        function generateSalt(callback) {
+            var rounds = 10;
+            bcrypt.genSalt(rounds, function (err, salt) {
+                if (err) {
+                    console.log("salt에러");
+                    callback(err);
+                } else {
 
-    res.json({
-        "message": "회원가입이 정상적으로 처리되었습니다..."
-    });
+                    callback(null, salt);
+                }
+            }); //salt 생성횟수
+
+        }
+
+        // 2. hash password generation
+        function generateHashPassword(salt, callback) {
+            bcrypt.hash(password, salt, function (err, hashPassword) {
+                if (err) {
+                    console.log("hash에러");
+                    callback(err);
+                } else {
+                    callback(null, hashPassword);
+                }
+            });
+        }
+
+        // 3. get connection
+        function getConnection(hashPassword, callback) {
+            pool.getConnection(function (err, connection) {
+                if (err) {
+                    console.log("connection에러");
+                    console.log(err);
+                    callback(err);
+                } else {
+
+                    callback(null, connection, hashPassword);
+                }
+            });
+        }
+
+        // 4. DB insert
+        function insertMember(connection, hashPassword, callback) {
+            var sql = "insert into fitmakerdb.user (user_name, password, email, exctype_id, user_type) " +
+                "values (?, ?, ?, ?, ?)";
+            connection.query(sql, [username, hashPassword, email, exctypeid, usertype], function (err, result) {
+                connection.release();
+
+                if (err) {
+                    console.log("insert에러");
+                    callback(err);
+                } else {
+                    callback(null, {
+                        "id": result.insertId
+                    });
+                }
+            });
+            var result = {};
+            callback(null, result);
+        }
+
+        async.waterfall([generateSalt, generateHashPassword, getConnection, insertMember], function (err, result) {
+            if (err) {
+                next(err);
+            } else {
+                result.message = "회원가입이 정상적으로 처리되었습니다...";
+                res.json(result);
+            }
+        })
+
+    }else{
+        var err = new Error('SSL/TLS Upgrade Required!!!'); // =  err.message ?!
+        err.status = 426;
+        next(err);
+    }
 
 });
 

@@ -5,10 +5,14 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var session = require('express-session');
+var passport = require('passport');
 
 global.pool = require('./config/dbpool');
+require('./config/passportconfig')(passport);
 
 // ----- Loading router-Level middleware modules ----- //
+var auth = require('./routes/auth');
+
 var index = require('./routes/index');
 var users = require('./routes/users');
 
@@ -16,6 +20,7 @@ var curriculum = require('./routes/curriculum');
 var rankfriends = require('./routes/rankfriends');
 var records = require('./routes/records');
 var projects = require('./routes/projects');
+
 
 var app = express();
 app.set('env', 'production');
@@ -33,15 +38,17 @@ app.use(cookieParser());
 
 //3. express 초기화
 app.use(session({
-  "secret": "i2+oCQts4kysnjc67CkdwuO3jSlY6r/cJDzTr11qUUg=",
+  //"secret": "i2+oCQts4kysnjc67CkdwuO3jSlY6r/cJDzTr11qUUg=",
+  "secret": process.env.FITMAKER_SERVER_KEY,
   "cookie": { "maxAge": 86400000 },
   "resave": true,
   "saveUninitialized": true
 }))
 
 //4. passport 초기화, 세션 - 순서에 민감하다 !
-//app.use(passport.initialize());
-//app.use(passport.session());
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 //app.use('/auth', auth);
@@ -56,6 +63,8 @@ app.use('/curriculum',curriculum);
 app.use('/rankfriends',rankfriends);
 app.use('/records',records);
 app.use('/projects', projects);
+app.use('/auth',auth);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
