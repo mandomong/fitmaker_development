@@ -5,7 +5,8 @@ var async =require('async');
 var router = express.Router();
 
 function isLoggedIn(req, res, next){
-    if(!req.session.userId){
+
+    if(!req.isAuthenticated()){
         var err = new Error('로그인이 필요합니다...');
         err.status = 401;
         next(err);
@@ -118,34 +119,101 @@ router.get('/facebook', function (req, res, nex) {
 // --- 8. 마이페이지 --- //
 router.route('/me')
 
-    .get(function (req, res, next) {
+    .get(isLoggedIn, function (req, res, next) {
 
                 if (req.secure) {
-                    //var user = req.user;
 
-                    res.json({
-                        "result": {
-                            "message": "마이페이지가 정상적으로 조회되었습니다...",
-                            "user_name": "천우희",
-                            "user_photourl": "/images/profile/woohee.jpg",
-                            "badge_Cnt": 3,
-                            "hours": 300,
-                            "exctype_name": "발레리나 타입",
-                            "project_history": [{"project_id": 1, "name": "비키니 프로젝트!", "ing": true},
-                                {"project_id": 2, "name": "힙업 삼주완성!", "ing": false},
-                                {"project_id": 3, "name": "해범이 만들기!", "ing": true}],
-                            "badges": [{
-                                "badge_name": "출석왕",
-                                "badge_photourl": "/images/badge/first.jpg",
-                                "own_badge": true
-                            },
-                                {
-                                    "badge_name": "에스라인마스터",
-                                    "badge_photourl": "/images/badge/second.jpg",
-                                    "own_badge": true
-                                }]
+                    var user_id = req.user.id;
+
+                    function getConnection(callback){
+                        pool.getConnection(function (err, connection){
+                            if(err){
+                                console.log("DB connection 에러...");
+                                callback(err);
+                            }else{
+                                callback(null, connection);
+                            }
+                        });
+                    }
+
+                    function selectProfile(connection, callback){
+                        var sql = "select * " +
+                          "from user u left join exercisetype et on(et.exctype_id = u.exctype_id) " +
+                          "left join project p on(u.user_id = p.user_id) " +
+                          "left join user_badge ub on(u.user_id = ub.user_id) " +
+                          "left join badge b on (ub.badge_id = b.badge_id) " +
+                          "where u.user_id = ?";
+
+                        connection.query(sql, [user_id], function(err, results){
+                            connection.release();
+                            if(err){
+                                console.log("DB SELECT 에러...");
+                                callback(err);
+                            }else{
+                                callback(null, results);
+                            }
+                        });
+                    }
+
+                    function resultJSON(results, callback){
+                        console.log(results);
+                        var result = {
+                            "result": {
+                                "message": "마이페이지가 정상적으로 조회되었습니다...",
+                                "user_name": results[0].user_name,
+                                "user_photourl": results[0].user_photourl,
+                                //"badge_Cnt": 5,
+                                //"hours": 250,
+                                "exctype_name": results[0].exctype_name,
+                                "project_history": [{"project_id":results[0].project_id, "project_name":results[0].project_name},
+                                    {"project_id":results[1].project_id, "project_name":results[1].project_name},
+                                    {"project_id":results[2].project_id, "project_name":results[2].project_name}],
+                                "badges": [{"badge_name": results[0].badge_name, "badge_photourl": results[0].badge_photourl},
+                                    {"badge_name": results[1].badge_name, "badge_photourl": results[1].badge_photourl},
+                                    {"badge_name": results[2].badge_name, "badge_photourl": results[2].badge_photourl}]
+                                //"project_history": [{"project_id": 1, "name": "비키니 프로젝트!", "ing": true},
+                                //                    {"project_id": 2, "name": "힙업 삼주완성!", "ing": false},
+                                //                    {"project_id": 3, "name": "해범이 만들기!", "ing": true}],
+                                //"badges": [{"badge_name": "출석왕", "badge_photourl": "/images/badge/first.jpg", "own_badge": true},
+                                //    {"badge_name": "에스라인마스터", "badge_photourl": "/images/badge/sline.jpg", "own_badge": true}]
+                            }
+                        };
+                        callback(null, result);
+                    }
+
+                    //res.json({
+                    //    "result": {
+                    //        "message": "마이페이지가 정상적으로 조회되었습니다...",
+                    //        "user_name": "천우희",
+                    //        "user_photourl": "/images/profile/woohee.jpg",
+                    //        "badge_Cnt": 3,
+                    //        "hours": 300,
+                    //        "exctype_name": "발레리나 타입",
+                    //        "project_history": [{"project_id": 1, "name": "비키니 프로젝트!", "ing": true},
+                    //            {"project_id": 2, "name": "힙업 삼주완성!", "ing": false},
+                    //            {"project_id": 3, "name": "해범이 만들기!", "ing": true}],
+                    //        "badges": [{
+                    //            "badge_name": "출석왕",
+                    //            "badge_photourl": "/images/badge/first.jpg",
+                    //            "own_badge": true
+                    //        },
+                    //            {
+                    //                "badge_name": "에스라인마스터",
+                    //                "badge_photourl": "/images/badge/second.jpg",
+                    //                "own_badge": true
+                    //            }]
+                    //    }
+                    //});
+
+                    async.waterfall([getConnection, selectProfile, resultJSON], function(err, results){
+                        if(err){
+                            next(err);
+                        }else{
+                            res.json(results);
                         }
                     });
+
+
 
 
                 } else {
@@ -158,7 +226,7 @@ router.route('/me')
 
     // --- 9. 프로필사진변경 --- //
 
-    .put(function (req, res, next) {
+    .put(isLoggedIn, function (req, res, next) {
 
                 res.json({
                     "message": "프로필 사진이 성공적으로 변경되었습니다"
@@ -167,24 +235,76 @@ router.route('/me')
     });
 
 // --- 10. 친구 프로필 보기 --- //
-router.get('/5', function (req, res, next) {
-
+router.get('/:friend_id', isLoggedIn, function (req, res, next) {
     if (req.secure) {
-        res.json({
-            "result": {
-                "message": "친구프로필 페이지가 정상적으로 조회되었습니다...",
-                "user_name": "장한솔",
-                "user_photourl": "/images/profile/jang.jpg",
-                "badge_Cnt": 5,
-                "hours": 250,
-                "exctype_name": "헬스 타입",
-                "project_history": [{"project_id": 1, "name": "비키니 프로젝트!", "ing": true},
-                    {"project_id": 2, "name": "힙업 삼주완성!", "ing": false},
-                    {"project_id": 3, "name": "해범이 만들기!", "ing": true}],
-                "badges": [{"badge_name": "출석왕", "badge_photourl": "/images/badge/first.jpg", "own_badge": true},
-                    {"badge_name": "에스라인마스터", "badge_photourl": "/images/badge/sline.jpg", "own_badge": true}]
+
+        var friend_id = parseInt(req.params.friend_id);
+
+        function getConnection(callback){
+            pool.getConnection(function (err, connection){
+                if(err){
+                    console.log("DB connection 에러...")
+                    callback(err);
+                }else{
+                    callback(null, connection);
+                }
+            });
+        }
+
+        function selectProfile(connection, callback){
+            var sql = "select * " +
+              "from user u left join exercisetype et on(et.exctype_id = u.exctype_id) " +
+              "left join project p on(u.user_id = p.user_id) " +
+              "left join user_badge ub on(u.user_id = ub.user_id) " +
+              "left join badge b on (ub.badge_id = b.badge_id) " +
+              "where u.user_id = ?";
+
+            connection.query(sql, [friend_id], function(err, results){
+                connection.release();
+                if(err){
+                    console.log("DB SELECT 에러...");
+                    callback(err);
+                }else{
+                    callback(null, results);
+                }
+            });
+        }
+
+        function resultJSON(results, callback) {
+
+            console.log(results);
+            var result = {
+                "result": {
+                    "message": "친구프로필 페이지가 정상적으로 조회되었습니다...",
+                    "user_name": results[0].user_name,
+                    "user_photourl": results[0].user_photourl,
+                    //"badge_Cnt": 5,
+                    //"hours": 250,
+                    "exctype_name": results[0].exctype_name,
+                    "project_history": [{"project_id":results[0].project_id, "project_name":results[0].project_name},
+                                        {"project_id":results[1].project_id, "project_name":results[1].project_name},
+                                        {"project_id":results[2].project_id, "project_name":results[2].project_name}],
+                    "badges": [{"badge_name": results[0].badge_name, "badge_photourl": results[0].badge_photourl},
+                               {"badge_name": results[1].badge_name, "badge_photourl": results[1].badge_photourl},
+                               {"badge_name": results[2].badge_name, "badge_photourl": results[2].badge_photourl}]
+                    //"project_history": [{"project_id": 1, "name": "비키니 프로젝트!", "ing": true},
+                    //                    {"project_id": 2, "name": "힙업 삼주완성!", "ing": false},
+                    //                    {"project_id": 3, "name": "해범이 만들기!", "ing": true}],
+                    //"badges": [{"badge_name": "출석왕", "badge_photourl": "/images/badge/first.jpg", "own_badge": true},
+                    //    {"badge_name": "에스라인마스터", "badge_photourl": "/images/badge/sline.jpg", "own_badge": true}]
+                }
+            };
+            callback(null, result);
+        }
+
+        async.waterfall([getConnection, selectProfile, resultJSON], function(err, results){
+            if(err){
+                next(err);
+            }else{
+                res.json(results);
             }
         });
+
     } else {
         var err = new Error('SSL/TLS Upgrade Required');
         err.status = 426;
