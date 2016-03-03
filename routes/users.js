@@ -156,7 +156,6 @@ router.route('/me')
                     }
 
                     function resultJSON(results, callback){
-                        console.log(results);
                         var result = {
                             "result": {
                                 "message": "마이페이지가 정상적으로 조회되었습니다...",
@@ -234,7 +233,7 @@ router.route('/me')
 
     });
 
-// --- 10. 친구 프로필 보기 --- //
+ // --- 10. 친구 프로필 보기 --- //
 router.get('/:friend_id', isLoggedIn, function (req, res, next) {
     if (req.secure) {
 
@@ -272,7 +271,6 @@ router.get('/:friend_id', isLoggedIn, function (req, res, next) {
 
         function resultJSON(results, callback) {
 
-            console.log(results);
             var result = {
                 "result": {
                     "message": "친구프로필 페이지가 정상적으로 조회되었습니다...",
@@ -312,6 +310,9 @@ router.get('/:friend_id', isLoggedIn, function (req, res, next) {
     }
 
 });
+
+
+
 
 router.get('/photos', function (req, res, next) {
     var form = new formidable.IncomingForm();

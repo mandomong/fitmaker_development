@@ -20,6 +20,7 @@ var curriculum = require('./routes/curriculum');
 var rankfriends = require('./routes/rankfriends');
 var records = require('./routes/records');
 var projects = require('./routes/projects');
+var relation = require('./routes/relation');
 
 
 var app = express();
@@ -51,9 +52,6 @@ app.use(passport.session());
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-//app.use('/auth', auth);
-//app.use('/members', member);
-
 
 // ------ mount points configuration ------ //
 // ------ Mapping mount points with router-Level middleware modules ------ //
@@ -64,6 +62,7 @@ app.use('/rankfriends',rankfriends);
 app.use('/records',records);
 app.use('/projects', projects);
 app.use('/auth',auth);
+app.use('/relation',relation);
 
 
 // catch 404 and forward to error handler
