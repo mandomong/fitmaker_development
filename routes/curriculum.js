@@ -1,6 +1,3 @@
-/**
- * Created by skplanet on 2016-02-23.
- */
 var express = require('express');
 var router = express.Router();
 var async = require('async');
@@ -80,6 +77,8 @@ router.get('/', function (req, res, next) {
                 async.each(results, iterator, function (err) {
                     if (err) {
                         callback(err);
+                    } else {
+                        callback(null, results)
                     }
                 });
                 console.log(curriculum);
