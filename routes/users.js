@@ -156,6 +156,33 @@ router.route('/me')
                     }
 
                     function resultJSON(results, callback){
+
+                        var project_history = [];
+                        var badges = [];
+
+                        function historyIterator (item, callback) {
+                            project_history.push(item);
+                            callback(null);
+                        }
+                        async.each(results[0].project_history, historyIterator, function (err) {
+                            if(err) {
+                                callback(err);
+                            } else {
+                                callback(null,results)
+                            }
+                        });
+
+                        function badgeIterator (item, callback) {
+                            badges.push(item);
+                            callback(null);
+                        }
+                        async.each(results[0].badges, badgeIterator, function (err) {
+                            if(err) {
+                                callback(err);
+                            } else {
+                                callback(null,results)
+                            }
+                        });
                         var result = {
                             "result": {
                                 "message": "마이페이지가 정상적으로 조회되었습니다...",
@@ -164,12 +191,8 @@ router.route('/me')
                                 //"badge_Cnt": 5,
                                 //"hours": 250,
                                 "exctype_name": results[0].exctype_name,
-                                "project_history": [{"project_id":results[0].project_id, "project_name":results[0].project_name},
-                                    {"project_id":results[1].project_id, "project_name":results[1].project_name},
-                                    {"project_id":results[2].project_id, "project_name":results[2].project_name}],
-                                "badges": [{"badge_name": results[0].badge_name, "badge_photourl": results[0].badge_photourl},
-                                    {"badge_name": results[1].badge_name, "badge_photourl": results[1].badge_photourl},
-                                    {"badge_name": results[2].badge_name, "badge_photourl": results[2].badge_photourl}]
+                                "project_history": project_history,
+                                "badges": badges
                                 //"project_history": [{"project_id": 1, "name": "비키니 프로젝트!", "ing": true},
                                 //                    {"project_id": 2, "name": "힙업 삼주완성!", "ing": false},
                                 //                    {"project_id": 3, "name": "해범이 만들기!", "ing": true}],

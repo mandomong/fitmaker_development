@@ -80,6 +80,8 @@ router.get('/', function (req, res, next) {
                 async.each(results, iterator, function (err) {
                     if (err) {
                         callback(err);
+                    } else {
+                        callback(null, results)
                     }
                 });
                 console.log(curriculum);
