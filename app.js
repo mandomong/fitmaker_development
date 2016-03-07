@@ -21,6 +21,7 @@ var rankfriends = require('./routes/rankfriends');
 var records = require('./routes/records');
 var projects = require('./routes/projects');
 var relation = require('./routes/relation');
+var friends = require('./routes/friends');
 
 
 var app = express();
@@ -63,6 +64,7 @@ app.use('/records',records);
 app.use('/projects', projects);
 app.use('/auth',auth);
 app.use('/relation',relation);
+app.use('/friends',friends);
 
 
 // catch 404 and forward to error handler
