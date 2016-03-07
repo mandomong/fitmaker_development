@@ -70,107 +70,12 @@ function isLoggedIn(req, res, next){
 //  });
 //});
 
-// --- 16. 회원 검색 --- //
-router.route('/')
-
-  .get(isLoggedIn, function (req, res, next){
-    var friend_email = req.query.email;
-    var user_id = req.user.id;
-
-    function getConnection(callback){
-      pool.getConnection(function (err, connection){
-        if(err){
-          console.log("DB connection 에러...");
-          callback(err);
-        }else{
-          callback(null, connection);
-        }
-      });
-    }
-
-    //친구 검색 query
-    function searchUser(connection, callback){
-      var sql = "select user_id, user_name, email, user_photourl " +
-        "from user " +
-        "where email = ?";
-
-      connection.query(sql, [friend_email], function(err, results){
-
-        if(err){
-          connection.release();
-          console.log("DB SELECT 에러...");
-          callback(err);
-        }else{
-          callback(null, results, connection);
-        }
-      });
-    }
-
-    function resultJSON(results, connection, callback){
-      var result = {
-        "message" : "회원 검색에 성공하였습니다...",
-        "user" : {"user_id":user_id},
-        "friends" : {"friend_id":results[0].user_id, "friend_name":results[0].user_name, "friend_photourl":results[0].user_photourl}
-      };
-      callback(null, result, connection);
-
-    }
-
-    function searchState(result, connection, callback){
-      var sql = "select user_id_req, user_id_res, state " +
-                "from friend " +
-                "where user_id_req = ? and user_id_res = ?";
-      connection.query(sql, [result.user.user_id, result.friends.friend_id], function(err, results){
-        connection.release();
-        if(err){
-          console.log("DB SELECT 에러...");
-          callback(err);
-        }else{
-          // state 값이 없을때
-          if(results.state == undefined){
-            results.state=2;
-            // -------------------------------------------------- state -1: 거절, state 0: 요청상태, state, 1: 친구상태, 2: DB에 없는상태
-          }
-          callback(null, result, results)
-        }
-      });
-    }
-
-    function resultJSON2(result, results, callback) {
-      var result_info = {
-        "message": "회원 검색에 성공하였습니다...",
-        "user": {"user_id": user_id},
-        "friends": {
-          "friend_id": result.friends.friend_id,
-          "friend_name": result.friends.friend_name,
-          "friend_photourl": result.friends.friend_photourl},
-        "state":results.state
-      };
-      console.log(result_info);
-      callback(null, result_info);
-
-    }
-
-
-    async.waterfall([getConnection, searchUser, resultJSON, searchState, resultJSON2],function(err, results){
-      if(err){
-        next(err);
-      }else{
-        /* 넘겨주는 results.state 정보는 -1, 0 1 값을 가질 수 있다
-        * -1은 거절 상태를 말하며 안드로이드에서 버튼선택 불가하게 처리
-        * 0은 DB에 테이블이 없는 상태 state 값을 0 으로 INSERT 할 수 있도록 post에서 처리 해야한다
-        * 1은 친구인 상태*/
-        res.json(results);
-      }
-    });
-  });
-
 
 // --- 회원 친구 추가 --- //
-router.route('/req')
+router.route('/')
   .post(isLoggedIn, function (req, res, next){
 
-    var user_id = req.user.id;;
+    var user_id = req.user.id;
     var friend_id = req.body.friend_id;
 
 
@@ -254,8 +159,6 @@ router.route('/res')
       if (err) {
         callback(err);
       } else {
-        console.log(user_id);
-        console.log(results);
         callback(null, results);
       }
     });
@@ -306,13 +209,12 @@ router.route('/res')
   });
 
 
-
 // --- 받은 친구 요청에 대한 응답 하기 --- //
-router.route('/req')
+router.route('/:friend_id')
   .put(isLoggedIn, function (req, res, next){
 
     var user_id = req.user.id;
-    var friend_id = req.body.friend_id;
+    var friend_id = req.params.friend_id;
     var state = req.body.state;
 
 
@@ -330,7 +232,7 @@ router.route('/req')
     function updateRelation(connection, callback){
       var sql = "UPDATE friend SET state='?' WHERE user_id_req=? and user_id_res=?";
 
-      connection.query(sql, [1, friend_id, user_id], function(err, result){
+      connection.query(sql, [state, friend_id, user_id], function(err, result){
         connection.release();
         if(err){
           callback(err);

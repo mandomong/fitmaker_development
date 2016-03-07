@@ -107,14 +107,14 @@ router.post('/', function (req, res, next) {
 
 });
 
-// --- 7. facebook 로그인 --- //
-router.get('/facebook', function (req, res, nex) {
-
-    res.json({
-        "message": "페이스북 로그인이 정상적으로 처리되었습니다."
-    });
-
-});
+//// --- 7. facebook 로그인 --- //
+//router.get('/facebook', function (req, res, nex) {
+//
+//    res.json({
+//        "message": "페이스북 로그인이 정상적으로 처리되었습니다."
+//    });
+//
+//});
 
 // --- 8. 마이페이지 --- //
 router.route('/me')
@@ -310,6 +310,116 @@ router.get('/:friend_id', isLoggedIn, function (req, res, next) {
     }
 
 });
+
+// --- 16. 회원 검색 --- //
+router.route('/')
+
+  .get(isLoggedIn, function (req, res, next){
+      var friend_email = req.query.email;
+      var user_id = req.user.id;
+      var relation_state;
+
+      function getConnection(callback){
+          pool.getConnection(function (err, connection){
+              if(err){
+                  console.log("DB connection 에러...");
+                  callback(err);
+              }else{
+                  callback(null, connection);
+              }
+          });
+      }
+
+      //친구 검색 query
+      function searchUser(connection, callback){
+          var sql = "select user_id, user_name, email, user_photourl " +
+                    "FROM user " +
+                    "where email = ?";
+
+          connection.query(sql, [friend_email], function(err, results){
+
+              if(err){
+                  connection.release();
+                  console.log("DB SELECT 에러...");
+                  callback(err);
+              }else{
+                  callback(null, results, connection);
+              }
+          });
+      }
+
+      function resultJSON(results, connection, callback){
+          var result = {
+
+              "message" : "회원 검색에 성공하였습니다...",
+              "user" : {"user_id":user_id},
+              "friends" : {"friend_id":results[0].user_id, "friend_name":results[0].user_name, "friend_photourl":results[0].user_photourl}
+          };
+          callback(null, result, connection);
+
+      }
+
+      function searchState(result, connection, callback){
+          var sql = "select user_id_req, user_id_res, state " +
+          "from friend " +
+          "where user_id_req = ? and user_id_res = ? " +
+          "union all " +
+          "select user_id_req, user_id_res, state " +
+          "from friend " +
+          "where user_id_req = ? and user_id_res = ?";
+          connection.query(sql, [result.user.user_id, result.friends.friend_id, result.friends.friend_id, result.user.user_id], function(err, results){
+              connection.release();
+              if(err){
+                  console.log("DB SELECT 에러...");
+                  callback(err);
+              }else{
+                  // state 값이 없을때
+                  if(results.length === 0){
+                      relation_state = 2; // 관계가 없어서 친구요청(버튼)
+                      // -------------------------------------------------- state -1: 거절, state 0: 요청상태, state, 1: 친구상태, 2: DB에 없는상태
+                  }else if(results[0].state == 0){
+                      relation_state = 0; // 친구 요청중
+                  }else if(results[0].state == 1){
+                      relation_state = 1; // 친구 상태일때
+                  }else{
+                      relation_state = -1; // 거절 상태
+                  }
+
+                  callback(null, result);
+              }
+          });
+      }
+
+      function resultJSON2(result, callback) {
+          console.log(relation_state);
+          var result_info = {
+              "result": {
+                  "message": "회원 검색에 성공하였습니다...",
+                  "user": {"user_id": user_id},
+                  "friends": {
+                      "friend_id": result.friends.friend_id,
+                      "friend_name": result.friends.friend_name,
+                      "friend_photourl": result.friends.friend_photourl
+                  },
+                  "state": relation_state
+              }
+          };
+          callback(null, result_info);
+
+      }
+
+      async.waterfall([getConnection, searchUser, resultJSON, searchState, resultJSON2],function(err, results){
+          if(err){
+              next(err);
+          }else{
+              /* 넘겨주는 results.state 정보는 -1, 0 1 값을 가질 수 있다
+               * -1은 거절 상태를 말하며 안드로이드에서 버튼선택 불가하게 처리
+               * 0은 DB에 테이블이 없는 상태 state 값을 0 으로 INSERT 할 수 있도록 post에서 처리 해야한다
+               * 1은 친구인 상태*/
+              res.json(results);
+          }
+      });
+  });
 
 
 
