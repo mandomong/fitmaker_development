@@ -9,7 +9,7 @@ var passport = require('passport');
 
 global.pool = require('./config/dbpool');
 require('./config/passportconfig')(passport);
-
+//
 // ----- Loading router-Level middleware modules ----- //
 var auth = require('./routes/auth');
 

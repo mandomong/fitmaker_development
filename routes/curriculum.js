@@ -1,6 +1,4 @@
-/**
- * Created by skplanet on 2016-02-23.
- */
+// 작성자 : 장한솔
 var express = require('express');
 var router = express.Router();
 var async = require('async');
