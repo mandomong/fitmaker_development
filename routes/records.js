@@ -13,17 +13,26 @@ function getConnection(callback){
   });
 }
 
+function isLoggedIn(req, res, next){
+
+  if(!req.isAuthenticated()){
+    var err = new Error('로그인이 필요합니다...');
+    err.status = 401;
+    next(err);
+  } else{
+    next();
+  }
+}
+
 // --- 4. 운동기록 --- //
+router.route('/').post(isLoggedIn, function (req, res, next) {
 
-router.post('/', function (req, res, next) {
-
-
-  var user_id = 2;
+  var user_id = req.user.id;
 
   //운동기록
   function insertRecord(connection, callback) {
     var sql = "INSERT INTO fitmakerdb.record (project_id, course_seq, playdate) " +
-      "VALUES (?, ?, sysdate()) ";
+      "      VALUES (?, ?, sysdate()) ";
     var project_id = req.body.project_id;
     var course_seq = req.body.course_seq;
 
