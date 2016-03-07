@@ -17,7 +17,7 @@ var index = require('./routes/index');
 var users = require('./routes/users');
 
 var curriculum = require('./routes/curriculum');
-var rankfriends = require('./routes/rankfriends');
+var ranking = require('./routes/ranking');
 var records = require('./routes/records');
 var projects = require('./routes/projects');
 var relation = require('./routes/relation');
@@ -59,7 +59,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', index);
 app.use('/users', users);
 app.use('/curriculum',curriculum);
-app.use('/rankfriends',rankfriends);
+app.use('/ranking',ranking);
 app.use('/records',records);
 app.use('/projects', projects);
 app.use('/auth',auth);
