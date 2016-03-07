@@ -2,6 +2,14 @@ var express = require('express');
 var bcrypt = require('bcrypt');
 var async =require('async');
 
+var formidable = require('formidable');
+var AWS = require('aws-sdk');
+var path = require('path');
+var s3Config = require('../config/s3Config');
+var fs = require('fs');
+var mime = require('mime');
+var util = require('util');
+
 var router = express.Router();
 
 function isLoggedIn(req, res, next){
@@ -14,8 +22,6 @@ function isLoggedIn(req, res, next){
         next();
     }
 }
-
-
 
 // --- 6. 회원 가입 --- //
 router.post('/', function (req, res, next) {
@@ -227,11 +233,93 @@ router.route('/me')
 
     .put(isLoggedIn, function (req, res, next) {
 
-                res.json({
-                    "message": "프로필 사진이 성공적으로 변경되었습니다"
+        var user_id = req.user.id;
+
+        function getConnection(callback){
+            pool.getConnection(function (err, connection){
+                if(err){
+                    console.log("DB connection 에러...");
+                    callback(err);
+                }else{
+                    callback(null, connection);
+                }
+            });
+        }
+
+        function changePhoto(connection, callback){
+
+            var form = new formidable.IncomingForm();
+            form.uploadDir = path.join(__dirname, '../uploads');
+            form.keepExtensions = true;
+            form.multiples = true;
+
+            form.parse(req, function (err, fields, files){
+                var file = files['photo'];
+                console.log("파일의 내용 " +file.name);
+                console.log("필드의 내용 " +fields);
+                var mimeType = mime.lookup(path.basename(file.path));
+                var s3 = new AWS.S3({
+                    "accessKeyId" : s3Config.key,
+                    "secretAccessKey" : s3Config.secret,
+                    "region" : s3Config.region,
+                    "params" : {
+                        "Bucket": s3Config.bucket,
+                        "Key": s3Config.imageDir + "/" + path.basename(file.path), // 목적지의 이름
+                        "ACL": s3Config.imageACL,
+                        "ContentType": mimeType //mime.lookup
+                    }
                 });
 
+                //file stream 연결 (pipe)와 유사
+                var body = fs.createReadStream(file.path);
+                s3.upload({"Body": body})
+                  .on('httpUploadProgress', function(event){
+                      console.log(event);
+                  })
+                  .send(function(err, data){
+                      if(err){
+                          console.log(err);
+                          callback(err);
+                      }else{
+                          fs.unlink(file.path, function(){
+                              console.log(files['photo'].path + " 파일이 삭제되었습니다...");
+                          });
+
+                          var sql = "update fitmakerdb.user " +
+                                    "set user_photourl= ? " +
+                                    "where user_id= ?";
+                          var s3_location = data.Location;
+                          connection.query(sql,[s3_location, user_id],function(err, result){
+
+                              connection.release();
+                              if(err){
+                                  callback(err);
+                              }else{
+                                  var result ={
+                                      "result" : "프로필 사진이 성공적으로 변경되었습니다"
+                                  };
+                                  callback(null, result);
+                              }
+                          });
+
+                      }
+                  })
+
+            });
+
+        }
+
+        async.waterfall([getConnection, changePhoto], function(err, result){
+            if(err){
+                next(err);
+            }else{
+                res.json(result);
+            }
+        });
+
     });
+
+
 
  // --- 10. 친구 프로필 보기 --- //
 router.get('/:friend_id', isLoggedIn, function (req, res, next) {
@@ -424,11 +512,6 @@ router.route('/')
 
 
 
-router.get('/photos', function (req, res, next) {
-    var form = new formidable.IncomingForm();
-    form.uploadDir = path.join(__dirname, 'uploads');
-    form.encoding = 'utf-8';
 
-});
 
 module.exports = router;

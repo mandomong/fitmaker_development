@@ -112,6 +112,8 @@ module.exports = function(passport) {
         });
     }));
 
+
+
     passport.use('facebook', new FacebookStrategy({
         "clientID" : authConfig.facebook.appId,
         "clientSecret" : authConfig.facebook.appSecret,
