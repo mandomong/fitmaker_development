@@ -128,7 +128,8 @@ router.route('/')
         }else{
           // state 값이 없을때
           if(results.state == undefined){
-            results.state=0;
+            results.state=2;
+            // -------------------------------------------------- state -1: 거절, state 0: 요청상태, state, 1: 친구상태, 2: DB에 없는상태
           }
           callback(null, result, results)
         }
