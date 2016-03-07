@@ -13,8 +13,20 @@ function getConnection(callback){
     });
 }
 
+function isLoggedIn(req, res, next){
+
+    if(!req.isAuthenticated()){
+        var err = new Error('로그인이 필요합니다...');
+        err.status = 401;
+        next(err);
+    } else{
+        next();
+    }
+}
+
+
 // --- 6. 프로젝트 생성 --- //
-router.post('/', function (req, res, next) {
+router.route('/').post(isLoggedIn, function (req, res, next) {
 
 
     // Project table insert
@@ -25,7 +37,7 @@ router.post('/', function (req, res, next) {
           "WHERE curri_id = ?), " +
           "sysdate(), date_add(sysdate(), interval 28 day), ?, ?) ";
         var curri_id = req.body.curri_id;
-        var user_id = 2;
+        var user_id = req.user.id;
 
         connection.query(sql, [curri_id, user_id, curri_id], function(err, projectResult){
             connection.release();

@@ -22,6 +22,7 @@ var records = require('./routes/records');
 var projects = require('./routes/projects');
 var relation = require('./routes/relation');
 var friends = require('./routes/friends');
+var badges = require('./routes/badges');
 
 
 var app = express();
@@ -65,6 +66,7 @@ app.use('/projects', projects);
 app.use('/auth',auth);
 app.use('/relation',relation);
 app.use('/friends',friends);
+app.use('/badges',badges);
 
 
 // catch 404 and forward to error handler
