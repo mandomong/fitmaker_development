@@ -23,6 +23,89 @@ function isLoggedIn(req, res, next){
     }
 }
 
+// --- 16. 회원 검색 final --- //
+router.route('/')
+  .get(isLoggedIn, function(req, res, next){
+      var friend_email = req.query.email;
+      var user_id = req.user.id;
+
+      var f_email = '%' + friend_email + '%';
+
+      function getConnection(callback){
+          pool.getConnection(function (err, connection){
+              if(err){
+                  console.log("DB connection 에러...");
+                  callback(err);
+              }else{
+                  callback(null, connection);
+              }
+          });
+      }
+
+      function searchUser(connection, callback){
+          var sql = "SELECT u.user_id, u.user_name, u.email, u.user_photourl, r.state " +
+            "FROM user u LEFT JOIN (SELECT u.user_id, u.user_name, u.email, f.state " +
+            "FROM fitmakerdb.friend f JOIN fitmakerdb.user u ON f.user_id_res = u.user_id " +
+            "WHERE user_id_req = ? " +
+            "UNION ALL " +
+            "SELECT u.user_id, u.user_name, u.email, f.state " +
+            "FROM fitmakerdb.friend f JOIN fitmakerdb.user u ON f.user_id_req = u.user_id " +
+            "WHERE user_id_res = ? ) r " +
+            "ON (u.user_id = r.user_id) " +
+            "WHERE u.email LIKE ? AND u.user_id != ?";
+
+          connection.query(sql, [user_id, user_id, f_email, user_id], function(err, results){
+              connection.release();
+              if(err){
+
+                  console.log("DB SELECT 에러...");
+                  callback(err);
+              }else{
+                  var search_users = [];
+
+                  function iterator(item, callback){
+                      search_users.push({
+                          "user_id" : item.user_id,
+                          "user_name" : item.user_name,
+                          "user_email" : item.email,
+                          "user_photourl" : item.user_photourl,
+                          "user_state" : item.state == null ? 2 : item.state
+                      });
+                      callback(null);
+                  }
+
+                  async.each(results, iterator, function(err){
+                      if(err){
+                          callback(err);
+                      } else{
+                          callback(null, search_users);
+                      }
+                  });
+              }
+          });
+      }
+
+      function resultJSON(search_users, callback) {
+          var result = {
+              "message" : "회원 검색에 성공하였습니다...",
+              "users": search_users
+          };
+          callback(null, result);
+      }
+
+      async.waterfall([getConnection, searchUser, resultJSON],function(err, results){
+          if(err){
+              next(err);
+          }else{
+              /* 넘겨주는 results.state 정보는 -1, 0 1 값을 가질 수 있다
+               * -1은 거절 상태를 말하며 안드로이드에서 버튼선택 불가하게 처리
+               * 0은 DB에 테이블이 없는 상태 state 값을 0 으로 INSERT 할 수 있도록 post에서 처리 해야한다
+               * 1은 친구인 상태*/
+              res.json(results);
+          }
+      });
+  });
+
 // --- 6. 회원 가입 --- //
 router.post('/', function (req, res, next) {
 
@@ -31,8 +114,7 @@ router.post('/', function (req, res, next) {
         var username = req.body.username;
         var password = req.body.password;
         var email = req.body.email;
-        var exctypeid = 3;
-        var usertype = 1;
+        var usertype = 1; // usertype 1은 회원, 0은 비회원
 
 
         // 1. salt generation -- 원본에 대한 보안성을 높이기 위해서 rainbow table에 salt값을 추가
@@ -113,144 +195,156 @@ router.post('/', function (req, res, next) {
 
 });
 
-//// --- 7. facebook 로그인 --- //
-//router.get('/facebook', function (req, res, nex) {
-//
-//    res.json({
-//        "message": "페이스북 로그인이 정상적으로 처리되었습니다."
-//    });
-//
-//});
 
 // --- 8. 마이페이지 --- //
 router.route('/me')
 
-    .get(isLoggedIn, function (req, res, next) {
+  .get(isLoggedIn, function (req, res, next) {
 
-                if (req.secure) {
+      if (req.secure) {
 
-                    var user_id = req.user.id;
+          var user_id = req.user.id;
 
-                    function getConnection(callback){
-                        pool.getConnection(function (err, connection){
-                            if(err){
-                                console.log("DB connection 에러...");
-                                callback(err);
-                            }else{
-                                callback(null, connection);
-                            }
-                        });
-                    }
+          function getConnection(callback) {
+              pool.getConnection(function (err, connection) {
+                  if (err) {
+                      console.log("DB connection 에러...");
+                      callback(err);
+                  } else {
+                      callback(null, connection);
+                  }
+              });
+          }
 
-                    function selectProfile(connection, callback){
-                        var sql = "select * " +
-                          "from user u left join exercisetype et on(et.exctype_id = u.exctype_id) " +
-                          "left join project p on(u.user_id = p.user_id) " +
-                          "left join user_badge ub on(u.user_id = ub.user_id) " +
-                          "left join badge b on (ub.badge_id = b.badge_id) " +
-                          "where u.user_id = ?";
+          function selectProfile(connection, callback) {
+              var sql = "SELECT u.user_name, u.user_photourl, vub.badgecnt, vuh.user_tothours, et.exctype_name " +
+                "      FROM fitmakerdb.user u JOIN exercisetype et ON (et.exctype_id = u.exctype_id) " +
+                "                             LEFT JOIN v_user_hours vuh ON (u.user_id = vuh.user_id) " +
+                "                             LEFT JOIN v_user_badgecnt vub ON (vub.user_id = u.user_id) " +
+                "      WHERE u.user_id = ?";
 
-                        connection.query(sql, [user_id], function(err, results){
-                            connection.release();
-                            if(err){
-                                console.log("DB SELECT 에러...");
-                                callback(err);
-                            }else{
-                                callback(null, results);
-                            }
-                        });
-                    }
+              connection.query(sql, [user_id], function (err, results) {
 
-                    function resultJSON(results, callback){
+                  if (err) {
+                      console.log("DB SELECT 에러...");
+                      callback(err);
+                  } else {
+                      console.log("user_id : " + user_id);
+                      var user = {
+                          "user_name": results[0].user_name,
+                          "user_photourl": results[0].user_photourl,
+                          "badgeCnt": results[0].badgeCnt,
+                          "hours": results[0].user_tothours,
+                          "exctype_name": results[0].exctype_name
+                      };
+                      callback(null, user, connection);
+                  }
+              });
+          }
 
-                        var project_history = [];
-                        var badges = [];
+          function selectHistory(user, connection, callback) {
+              var sql = "SELECT project_id, project_name, " +
+                "             (CASE WHEN project_enddate > DATE(date_format(CONVERT_TZ(now(), '+00:00', '+9:00'), '%Y-%m-%d %H-%i-%s')) THEN 1 ELSE 0 END) AS project_on " +
+                "      FROM fitmakerdb.project " +
+                "      WHERE user_id = ?";
 
-                        function historyIterator (item, callback) {
-                            project_history.push(item);
-                            callback(null);
-                        }
-                        async.each(results[0].project_history, historyIterator, function (err) {
-                            if(err) {
-                                callback(err);
-                            } else {
-                                callback(null,results)
-                            }
-                        });
+              connection.query(sql, [user_id], function (err, results) {
 
-                        function badgeIterator (item, callback) {
-                            badges.push(item);
-                            callback(null);
-                        }
-                        async.each(results[0].badges, badgeIterator, function (err) {
-                            if(err) {
-                                callback(err);
-                            } else {
-                                callback(null,results)
-                            }
-                        });
-                        var result = {
-                            "result": {
-                                "message": "마이페이지가 정상적으로 조회되었습니다...",
-                                "user_name": results[0].user_name,
-                                "user_photourl": results[0].user_photourl,
-                                //"badge_Cnt": 5,
-                                //"hours": 250,
-                                "exctype_name": results[0].exctype_name,
-                                "project_history": project_history,
-                                "badges": badges
-                                //"project_history": [{"project_id": 1, "name": "비키니 프로젝트!", "ing": true},
-                                //                    {"project_id": 2, "name": "힙업 삼주완성!", "ing": false},
-                                //                    {"project_id": 3, "name": "해범이 만들기!", "ing": true}],
-                                //"badges": [{"badge_name": "출석왕", "badge_photourl": "/images/badge/first.jpg", "own_badge": true},
-                                //    {"badge_name": "에스라인마스터", "badge_photourl": "/images/badge/sline.jpg", "own_badge": true}]
-                            }
-                        };
-                        callback(null, result);
-                    }
+                  if (err) {
+                      console.log("DB SELECT 에러...");
+                      callback(err);
+                  } else {
+                      var project_history = [];
 
-                    //res.json({
-                    //    "result": {
-                    //        "message": "마이페이지가 정상적으로 조회되었습니다...",
-                    //        "user_name": "천우희",
-                    //        "user_photourl": "/images/profile/woohee.jpg",
-                    //        "badge_Cnt": 3,
-                    //        "hours": 300,
-                    //        "exctype_name": "발레리나 타입",
-                    //        "project_history": [{"project_id": 1, "name": "비키니 프로젝트!", "ing": true},
-                    //            {"project_id": 2, "name": "힙업 삼주완성!", "ing": false},
-                    //            {"project_id": 3, "name": "해범이 만들기!", "ing": true}],
-                    //        "badges": [{
-                    //            "badge_name": "출석왕",
-                    //            "badge_photourl": "/images/badge/first.jpg",
-                    //            "own_badge": true
-                    //        },
-                    //            {
-                    //                "badge_name": "에스라인마스터",
-                    //                "badge_photourl": "/images/badge/second.jpg",
-                    //                "own_badge": true
-                    //            }]
-                    //    }
-                    //});
+                      function iterator(item, callback) {
+                          project_history.push({
+                              "project_id": item.project_id,
+                              "project_name": item.project_name,
+                              "project_on": item.project_on > 0 ? true : false
+                          });
+                          callback(null);
+                      }
 
-                    async.waterfall([getConnection, selectProfile, resultJSON], function(err, results){
-                        if(err){
-                            next(err);
-                        }else{
-                            res.json(results);
-                        }
-                    });
+                      async.each(results, iterator, function (err) {
+                          if (err) {
+                              callback(err);
+                          } else {
+                              callback(null, project_history, user, connection);
+                          }
+                      });
 
 
+                  }
+              });
+          }
+
+          function selectMyBadges(project_history, user, connection, callback) {
+              var sql = "SELECT b.badge_id, b.badge_name, b.badge_photourl " +
+                "      FROM user_badge ub JOIN badge b ON ub.badge_id = b.badge_id " +
+                "      WHERE user_id = ? ";
+
+              connection.query(sql, [user_id], function (err, results) {
+                  connection.release();
+                  if (err) {
+                      console.log("DB SELECT 에러...");
+                      callback(err);
+                  } else {
+                      var mybadges = [];
+
+                      function iterator(item, callback) {
+                          mybadges.push({
+                              "badge_id": item.badge_id,
+                              "badge_name": item.badge_name,
+                              "badge_photourl": item.badge_photourl
+                          });
+                          callback(null);
+                      }
+
+                      async.each(results, iterator, function (err) {
+                          if (err) {
+                              callback(err);
+                          } else {
+                              callback(null, mybadges, project_history, user);
+                          }
+                      });
 
 
-                } else {
-                    var err = new Error('SSL/TLS Upgrade Required');
-                    err.status = 426;
-                    next(err);
-                }
+                  }
+              });
+          }
 
-    })
+          function resultJSON(mybadges, project_history, user, callback) {
+
+
+              var result = {
+                  "result": {
+                      "message": "마이페이지가 정상적으로 조회되었습니다...",
+                      "user": user,
+                      "project_history": project_history,
+                      "mybadges": mybadges
+
+                  }
+              };
+              callback(null, result);
+          }
+
+
+          async.waterfall([getConnection, selectProfile, selectHistory, selectMyBadges, resultJSON], function (err, result) {
+              if (err) {
+                  next(err);
+              } else {
+                  res.json(result);
+              }
+          });
+
+
+      } else {
+          var err = new Error('SSL/TLS Upgrade Required');
+          err.status = 426;
+          next(err);
+      }
+
+  })
 
     // --- 9. 프로필사진변경 --- //
 
@@ -356,10 +450,12 @@ router.route('/me')
                               if(err){
                                   callback(err);
                               }else{
-                                  var result ={
+                                  console.log(result);
+                                  //변경됨을 알리는 메세지 안드로이드에 전송
+                                  var message ={
                                       "result" : "프로필 사진이 성공적으로 변경되었습니다"
                                   };
-                                  callback(null, result);
+                                  callback(null, message);
                               }
                           });
 
@@ -379,200 +475,6 @@ router.route('/me')
         });
 
     });
-
-
-
- // --- 10. 친구 프로필 보기 --- //
-router.get('/:friend_id', isLoggedIn, function (req, res, next) {
-    if (req.secure) {
-
-        var friend_id = parseInt(req.params.friend_id);
-
-        function getConnection(callback){
-            pool.getConnection(function (err, connection){
-                if(err){
-                    console.log("DB connection 에러...")
-                    callback(err);
-                }else{
-                    callback(null, connection);
-                }
-            });
-        }
-
-        function selectProfile(connection, callback){
-            var sql = "select * " +
-              "from user u left join exercisetype et on(et.exctype_id = u.exctype_id) " +
-              "left join project p on(u.user_id = p.user_id) " +
-              "left join user_badge ub on(u.user_id = ub.user_id) " +
-              "left join badge b on (ub.badge_id = b.badge_id) " +
-              "where u.user_id = ?";
-
-            connection.query(sql, [friend_id], function(err, results){
-                connection.release();
-                if(err){
-                    console.log("DB SELECT 에러...");
-                    callback(err);
-                }else{
-                    callback(null, results);
-                }
-            });
-        }
-
-        function resultJSON(results, callback) {
-
-            var result = {
-                "result": {
-                    "message": "친구프로필 페이지가 정상적으로 조회되었습니다...",
-                    "user_name": results[0].user_name,
-                    "user_photourl": results[0].user_photourl,
-                    //"badge_Cnt": 5,
-                    //"hours": 250,
-                    "exctype_name": results[0].exctype_name,
-                    "project_history": [{"project_id":results[0].project_id, "project_name":results[0].project_name},
-                                        {"project_id":results[1].project_id, "project_name":results[1].project_name},
-                                        {"project_id":results[2].project_id, "project_name":results[2].project_name}],
-                    "badges": [{"badge_name": results[0].badge_name, "badge_photourl": results[0].badge_photourl},
-                               {"badge_name": results[1].badge_name, "badge_photourl": results[1].badge_photourl},
-                               {"badge_name": results[2].badge_name, "badge_photourl": results[2].badge_photourl}]
-                    //"project_history": [{"project_id": 1, "name": "비키니 프로젝트!", "ing": true},
-                    //                    {"project_id": 2, "name": "힙업 삼주완성!", "ing": false},
-                    //                    {"project_id": 3, "name": "해범이 만들기!", "ing": true}],
-                    //"badges": [{"badge_name": "출석왕", "badge_photourl": "/images/badge/first.jpg", "own_badge": true},
-                    //    {"badge_name": "에스라인마스터", "badge_photourl": "/images/badge/sline.jpg", "own_badge": true}]
-                }
-            };
-            callback(null, result);
-        }
-
-        async.waterfall([getConnection, selectProfile, resultJSON], function(err, results){
-            if(err){
-                next(err);
-            }else{
-                res.json(results);
-            }
-        });
-
-    } else {
-        var err = new Error('SSL/TLS Upgrade Required');
-        err.status = 426;
-        next(err);
-    }
-
-});
-
-// --- 16. 회원 검색 --- //
-router.route('/')
-
-  .get(isLoggedIn, function (req, res, next){
-      var friend_email = req.query.email;
-      var user_id = req.user.id;
-      var relation_state;
-
-      function getConnection(callback){
-          pool.getConnection(function (err, connection){
-              if(err){
-                  console.log("DB connection 에러...");
-                  callback(err);
-              }else{
-                  callback(null, connection);
-              }
-          });
-      }
-
-      //친구 검색 query
-      function searchUser(connection, callback){
-          var sql = "select user_id, user_name, email, user_photourl " +
-                    "FROM user " +
-                    "where email = ?";
-
-          connection.query(sql, [friend_email], function(err, results){
-
-              if(err){
-                  connection.release();
-                  console.log("DB SELECT 에러...");
-                  callback(err);
-              }else{
-                  callback(null, results, connection);
-              }
-          });
-      }
-
-      function resultJSON(results, connection, callback){
-          var result = {
-
-              "message" : "회원 검색에 성공하였습니다...",
-              "user" : {"user_id":user_id},
-              "friends" : {"friend_id":results[0].user_id, "friend_name":results[0].user_name, "friend_photourl":results[0].user_photourl}
-          };
-          callback(null, result, connection);
-
-      }
-
-      function searchState(result, connection, callback){
-          var sql = "select user_id_req, user_id_res, state " +
-          "from friend " +
-          "where user_id_req = ? and user_id_res = ? " +
-          "union all " +
-          "select user_id_req, user_id_res, state " +
-          "from friend " +
-          "where user_id_req = ? and user_id_res = ?";
-          connection.query(sql, [result.user.user_id, result.friends.friend_id, result.friends.friend_id, result.user.user_id], function(err, results){
-              connection.release();
-              if(err){
-                  console.log("DB SELECT 에러...");
-                  callback(err);
-              }else{
-                  // state 값이 없을때
-                  if(results.length === 0){
-                      relation_state = 2; // 관계가 없어서 친구요청(버튼)
-                      // -------------------------------------------------- state -1: 거절, state 0: 요청상태, state, 1: 친구상태, 2: DB에 없는상태
-                  }else if(results[0].state == 0){
-                      relation_state = 0; // 친구 요청중
-                  }else if(results[0].state == 1){
-                      relation_state = 1; // 친구 상태일때
-                  }else{
-                      relation_state = -1; // 거절 상태
-                  }
-
-                  callback(null, result);
-              }
-          });
-      }
-
-      function resultJSON2(result, callback) {
-          console.log(relation_state);
-          var result_info = {
-              "result": {
-                  "message": "회원 검색에 성공하였습니다...",
-                  "user": {"user_id": user_id},
-                  "friends": {
-                      "friend_id": result.friends.friend_id,
-                      "friend_name": result.friends.friend_name,
-                      "friend_photourl": result.friends.friend_photourl
-                  },
-                  "state": relation_state
-              }
-          };
-          callback(null, result_info);
-
-      }
-
-      async.waterfall([getConnection, searchUser, resultJSON, searchState, resultJSON2],function(err, results){
-          if(err){
-              next(err);
-          }else{
-              /* 넘겨주는 results.state 정보는 -1, 0 1 값을 가질 수 있다
-               * -1은 거절 상태를 말하며 안드로이드에서 버튼선택 불가하게 처리
-               * 0은 DB에 테이블이 없는 상태 state 값을 0 으로 INSERT 할 수 있도록 post에서 처리 해야한다
-               * 1은 친구인 상태*/
-              res.json(results);
-          }
-      });
-  });
-
-
-
-
 
 
 module.exports = router;

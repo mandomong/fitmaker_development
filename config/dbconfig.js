@@ -11,7 +11,7 @@ var config = {
     "password": process.env.FITMAKER_DB_PASSWORD,
     "database": process.env.FITMAKER_DB,
     "ssl": "Amazon RDS",
-    "debug": true
+    "debug": false
 };
 
 //
