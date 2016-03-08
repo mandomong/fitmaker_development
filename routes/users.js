@@ -269,6 +269,20 @@ router.route('/me')
             });
         }
 
+        //function checkPhoto(connection, callback){
+        //    var sql = "select user_id, user_photourl" +
+        //              "from user";
+        //    connection.query(sql,[user_id],function(err,results){
+        //       if(err){
+        //           connection.release();
+        //           callback(err);
+        //       } else{
+        //           //TODO : 할일
+        //       }
+        //    });
+        //
+        //}
+
         function changePhoto(connection, callback){
 
             var form = new formidable.IncomingForm();
