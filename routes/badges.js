@@ -6,7 +6,6 @@ var async = require('async');
 //getConnection
 function getConnection(callback) {
 
-<<<<<<< HEAD
     pool.getConnection(function (err, connection) {
         if (err) {
             callback(err);
@@ -14,21 +13,11 @@ function getConnection(callback) {
             callback(null, connection);
         }
     });
-=======
-  pool.getConnection(function (err, connection) {
-    if (err) {
-      callback(err);
-    } else {
-      callback(null, connection);
-    }
-  });
->>>>>>> origin/master
 
 }
 
 function isLoggedIn(req, res, next){
 
-<<<<<<< HEAD
     if(!req.isAuthenticated()){
         var err = new Error('로그인이 필요합니다...');
         err.status = 401;
@@ -36,15 +25,6 @@ function isLoggedIn(req, res, next){
     } else{
         next();
     }
-=======
-  if(!req.isAuthenticated()){
-    var err = new Error('로그인이 필요합니다...');
-    err.status = 401;
-    next(err);
-  } else{
-    next();
-  }
->>>>>>> origin/master
 }
 
 // --- 뱃지 조회 --- //
@@ -53,7 +33,6 @@ router.route('/:badge_id').get(isLoggedIn, function (req, res, next) {
 
 
 
-<<<<<<< HEAD
     var badge_id = req.params.badge_id;
     console.log(badge_id);
 
@@ -64,23 +43,10 @@ router.route('/:badge_id').get(isLoggedIn, function (req, res, next) {
         var sql = "SELECT badge_name, badge_photourl " +
             "      FROM fitmakerdb.badge " +
             "      WHERE badge_id = ? ";
-=======
-  var badge_id = req.params.badge_id;
-  console.log(badge_id);
-
-
-
-  // 뱃지조회하기
-  function selectBadge(connection, callback) {
-    var sql = "SELECT badge_name, badge_photourl " +
-      "      FROM fitmakerdb.badge " +
-      "      WHERE badge_id = ? ";
->>>>>>> origin/master
 
 
 
 
-<<<<<<< HEAD
         connection.query(sql, [badge_id], function (err, results) {
             connection.release();
             if (err) {
@@ -119,46 +85,6 @@ router.route('/:badge_id').get(isLoggedIn, function (req, res, next) {
             res.json(result);
         }
     });
-=======
-    connection.query(sql, [badge_id], function (err, results) {
-      connection.release();
-      if (err) {
-        callback(err);
-      } else {
-
-        var badge = {
-          "badge_name" : results[0].badge_name,
-          "badge_photourl" : results[0].badge_photourl,
-        };
-        callback(null, badge);
-
-      }
-
-
-    });
-  }
-
-  function makeJSON(badge, callback) {
-
-
-    var result = {
-      "message": "뱃지 가져오기에 성공하였습니다",
-      "badge": badge
-
-    };
-    callback(null, result);
-
-
-  }
-
-  async.waterfall([getConnection, selectBadge, makeJSON], function (err, result) {
-    if (err) {
-      next(err);
-    } else {
-      res.json(result);
-    }
-  });
->>>>>>> origin/master
 
 
 

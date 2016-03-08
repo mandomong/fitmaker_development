@@ -13,17 +13,26 @@ function getConnection(callback){
   });
 }
 
+function isLoggedIn(req, res, next){
+
+  if(!req.isAuthenticated()){
+    var err = new Error('로그인이 필요합니다...');
+    err.status = 401;
+    next(err);
+  } else{
+    next();
+  }
+}
+
 // --- 4. 운동기록 --- //
+router.route('/').post(isLoggedIn, function (req, res, next) {
 
-router.post('/', function (req, res, next) {
-
-
-  var user_id = 2;
+  var user_id = req.user.id;
 
   //운동기록
   function insertRecord(connection, callback) {
     var sql = "INSERT INTO fitmakerdb.record (project_id, course_seq, playdate) " +
-      "VALUES (?, ?, sysdate()) ";
+        "      VALUES (?, ?, sysdate()) ";
     var project_id = req.body.project_id;
     var course_seq = req.body.course_seq;
 
@@ -43,10 +52,10 @@ router.post('/', function (req, res, next) {
 
     //운동시간 조회
     var sql = "SELECT sum(course_totaltime) as mytotaltime" +
-      "      FROM record r join project p on (r.project_id = p.project_id) " +
-      "                    join curri_course cc on (p.curri_id = cc.curri_id and r.course_seq = cc.course_seq) " +
-      "                    join course c on (c.course_id = cc.course_id) " +
-      "      WHERE p.user_id = ? ";
+        "      FROM record r join project p on (r.project_id = p.project_id) " +
+        "                    join curri_course cc on (p.curri_id = cc.curri_id and r.course_seq = cc.course_seq) " +
+        "                    join course c on (c.course_id = cc.course_id) " +
+        "      WHERE p.user_id = ? ";
 
 
 
@@ -79,7 +88,7 @@ router.post('/', function (req, res, next) {
     } else {
 
       var sql = "INSERT INTO fitmakerdb.user_badge (user_id, badge_id, badge_date) " +
-        "      VALUES (?, ?, sysdate()) ";
+          "      VALUES (?, ?, sysdate()) ";
 
 
       connection.query(sql, [user_id, badge_id], function (err, result) {
