@@ -16,7 +16,11 @@ router.post('/login', function(req, res, next){
            }else{
                req.logIn(user, function(err){
                   if(err){
-                      next(err);
+                      var ERROR = {
+                        "code": "E0002",
+                        "message": "로그인에 실패하였습니다..."
+                      };
+                      next(ERROR);
                   } else{
                       res.json(user);
                   }
@@ -31,11 +35,26 @@ router.post('/login', function(req, res, next){
     }
 });
 
-router.post('/logout', function(req, res, next){
-   req.logout();
-    res.json({
-       "message" : "로그아웃 되었습니다..."
-    });
+// logout을 위한 로그인 체크
+function isLoggedIn2(req, res, next){
+
+  if(!req.isAuthenticated()){
+    var ERROR = {
+      "code":"E0004",
+      "message":"로그인 되어 있지않아 로그아웃에 실패하였습니다..."
+    };
+    next(ERROR);
+  } else{
+    next();
+  }
+}
+
+router.post('/logout', isLoggedIn2, function (req, res, next) {
+
+  req.logout();
+  res.json({
+    "message": "로그아웃 되었습니다..."
+  });
 });
 
 router.get('/facebook', passport.authenticate('facebook', {"scope" : "email"}));
@@ -72,6 +91,11 @@ router.get('/facebook/token', function(req,res,next){
       } else {
         req.logIn(user, function (err) {
           if (err) {
+            var ERROR = {
+              "code": "E0003",
+              "message": "페이스북 계정이 존재하지 않습니다..."
+            };
+            next(ERROR);
             next(err);
           } else {
             res.json(user);

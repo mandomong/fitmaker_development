@@ -118,23 +118,16 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
 
   async.waterfall([getConnection, insertRecord, hoursBadge, insertBadge, makeJSON], function (err, result) {
     if (err) {
-      next(err);
+      var ERROR = {
+        "code":"E0008",
+        "message":"운동기록에 실패하였습니다..."
+      };
+      next(ERROR);
     } else {
       res.json(result);
     }
   });
-  /*
-   res.json(
-   {
-   "result": {
-   "message": "운동기록에 성공하였습니다",
-   "badge_id": 1
-   }
 
-
-   }
-   );
-   */
 });
 
 module.exports = router;

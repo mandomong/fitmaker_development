@@ -95,7 +95,11 @@ router.route('/')
 
       async.waterfall([getConnection, searchUser, resultJSON],function(err, results){
           if(err){
-              next(err);
+            var ERROR = {
+              "code":"E0016",
+              "message":"회원 검색에 실패하였습니다..."
+            };
+            next(ERROR);
           }else{
               /* 넘겨주는 results.state 정보는 -1, 0 1 값을 가질 수 있다
                * -1은 거절 상태를 말하며 안드로이드에서 버튼선택 불가하게 처리
@@ -106,15 +110,55 @@ router.route('/')
       });
   });
 
-// --- 6. 회원 가입 --- //
+// ---  회원 가입 --- //
 router.post('/', function (req, res, next) {
 
     if(req.secure) {
 
-        var username = req.body.username;
+        var username = req.body.user_name;
         var password = req.body.password;
         var email = req.body.email;
+        var birthday = req.body.birthday;
         var usertype = 1; // usertype 1은 회원, 0은 비회원
+
+        //중복 체크
+
+        function getConnection1(callback) {
+            pool.getConnection(function (err, connection) {
+                if (err) {
+                    console.log("connection에러");
+                    console.log(err);
+                    callback(err);
+                } else {
+
+                    callback(null, connection);
+                }
+            });
+        }
+
+        function checkEmail(connection, callback) {
+            var sql = "SELECT * " +
+              "FROM fitmakerdb.user " +
+              "WHERE email = ?";
+
+            connection.query(sql, [email], function (err, results) {
+                connection.release();
+                if (err) {
+                    console.log("DB select 에러...");
+                    callback(err);
+                } else {
+                    if(results.length > 0){
+                        callback(new Error("email 주소가 중복되었습니다..."));
+                    }else{
+                        callback(null);
+                    }
+
+                }
+            });
+        }
+
+
+        //
 
 
         // 1. salt generation -- 원본에 대한 보안성을 높이기 위해서 rainbow table에 salt값을 추가
@@ -160,9 +204,9 @@ router.post('/', function (req, res, next) {
 
         // 4. DB insert
         function insertMember(connection, hashPassword, callback) {
-            var sql = "insert into fitmakerdb.user (user_name, password, email, exctype_id, user_type) " +
+            var sql = "insert into fitmakerdb.user (user_name, password, email, birthday,user_type) " +
                 "values (?, ?, ?, ?, ?)";
-            connection.query(sql, [username, hashPassword, email, exctypeid, usertype], function (err, result) {
+            connection.query(sql, [username, hashPassword, email, birthday, usertype], function (err, result) {
                 connection.release();
 
                 if (err) {
@@ -178,9 +222,13 @@ router.post('/', function (req, res, next) {
             callback(null, result);
         }
 
-        async.waterfall([generateSalt, generateHashPassword, getConnection, insertMember], function (err, result) {
+        async.waterfall([getConnection1, checkEmail, generateSalt, generateHashPassword, getConnection, insertMember], function (err, result) {
             if (err) {
-                next(err);
+                var ERROR = {
+                    "code":"E0001",
+                    "message":"회원가입에 실패하였습니다..."
+                };
+                next(ERROR);
             } else {
                 result.message = "회원가입이 정상적으로 처리되었습니다...";
                 res.json(result);
@@ -331,7 +379,11 @@ router.route('/me')
 
           async.waterfall([getConnection, selectProfile, selectHistory, selectMyBadges, resultJSON], function (err, result) {
               if (err) {
-                  next(err);
+                  var ERROR = {
+                      "code":"E0011",
+                      "message":"마이페이지 조회에 실패하였습니다..."
+                  };
+                  next(ERROR);
               } else {
                   res.json(result);
               }
@@ -409,58 +461,57 @@ router.route('/me')
             form.multiples = true;
 
             form.parse(req, function (err, fields, files){
-                var file = files['photo'];
-                console.log("파일의 내용 " +file.name);
-                console.log("필드의 내용 " +fields);
-                var mimeType = mime.lookup(path.basename(file.path));
-                var s3 = new AWS.S3({
-                    "accessKeyId" : s3Config.key,
-                    "secretAccessKey" : s3Config.secret,
-                    "region" : s3Config.region,
-                    "params" : {
-                        "Bucket": s3Config.bucket,
-                        "Key": s3Config.imageDir + "/" + path.basename(file.path), // 목적지의 이름
-                        "ACL": s3Config.imageACL,
-                        "ContentType": mimeType //mime.lookup
-                    }
-                });
 
-                //file stream 연결 (pipe)와 유사
-                var body = fs.createReadStream(file.path);
-                s3.upload({"Body": body})
-                  .on('httpUploadProgress', function(event){
-                      console.log(event);
-                  })
-                  .send(function(err, data){
-                      if(err){
-                          console.log(err);
-                          callback(err);
-                      }else{
-                          fs.unlink(file.path, function(){
-                              console.log(files['photo'].path + " 파일이 삭제되었습니다...");
-                          });
+                    var file = files['photo'];
+                    var mimeType = mime.lookup(path.basename(file.path));
+                    var s3 = new AWS.S3({
+                        "accessKeyId": s3Config.key,
+                        "secretAccessKey": s3Config.secret,
+                        "region": s3Config.region,
+                        "params": {
+                            "Bucket": s3Config.bucket,
+                            "Key": s3Config.imageDir + "/" + path.basename(file.path), // 목적지의 이름
+                            "ACL": s3Config.imageACL,
+                            "ContentType": mimeType //mime.lookup
+                        }
+                    });
 
-                          var sql = "update fitmakerdb.user " +
-                                    "set user_photourl= ? " +
-                                    "where user_id= ?";
-                          var s3_location = data.Location;
-                          connection.query(sql,[s3_location, user_id],function(err, result){
+                    //file stream 연결 (pipe)와 유사
+                    var body = fs.createReadStream(file.path);
+                    s3.upload({"Body": body})
+                      .on('httpUploadProgress', function (event) {
+                          console.log(event);
+                      })
+                      .send(function (err, data) {
+                          if (err) {
+                              console.log(err);
+                              callback(err);
+                          } else {
+                              fs.unlink(file.path, function () {
+                                  console.log(files['photo'].path + " 파일이 삭제되었습니다...");
+                              });
 
-                              connection.release();
-                              if(err){
-                                  callback(err);
-                              }else{
-                                  console.log(result);
-                                  //변경됨을 알리는 메세지 안드로이드에 전송
-                                  var message ={
-                                      "result" : "프로필 사진이 성공적으로 변경되었습니다"
-                                  };
-                                  callback(null, message);
-                              }
-                          });
+                              var sql = "update fitmakerdb.user " +
+                                "set user_photourl= ? " +
+                                "where user_id= ?";
+                              var s3_location = data.Location;
+                              connection.query(sql, [s3_location, user_id], function (err, result) {
 
-                      }
-                  })
+                                  connection.release();
+                                  if (err) {
+                                      callback(err);
+                                  } else {
+                                      console.log(result);
+                                      //변경됨을 알리는 메세지 안드로이드에 전송
+                                      var message = {
+                                          "result": "프로필 사진이 성공적으로 변경되었습니다"
+                                      };
+                                      callback(null, message);
+                                  }
+                              });
+
+                          }
+                      })
 
             });
 
@@ -468,7 +519,11 @@ router.route('/me')
 
         async.waterfall([getConnection, checkPhoto, changePhoto], function(err, result){
             if(err){
-                next(err);
+                var ERROR = {
+                    "code":"E0012",
+                    "message":"프로필 사진 변경에 실패하였습니다..."
+                };
+                next(ERROR);
             }else{
                 res.json(result);
             }

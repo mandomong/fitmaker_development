@@ -15,14 +15,14 @@ function getConnection(callback) {
     });
 }
 
-var user_id = 2;
-
 // --- 6. 프로젝트 생성 --- //
 router.post('/', function (req, res, next) {
 
+    var user_id = req.user.id;
 
     // Project table insert
     function insertProject(connection, callback) {
+
         var sql = "INSERT INTO project(project_name, project_startdate, project_enddate, user_id, curri_id) " +
             "VALUES ((SELECT curri_name " +
             "FROM curriculum " +
@@ -33,7 +33,7 @@ router.post('/', function (req, res, next) {
 
         connection.query(sql, [curri_id, user_id, curri_id], function (err, projectResult) {
             connection.release();
-            console.log(projectResult);
+            //console.log(projectResult);
             if (err) {
                 callback(err);
             } else {
@@ -57,7 +57,11 @@ router.post('/', function (req, res, next) {
 
     async.waterfall([getConnection, insertProject, makeJSON], function (err, result) {
         if (err) {
-            next(err);
+            var ERROR = {
+                "code":"E0006",
+                "message":"프로젝트를 생성 하는데 실패하였습니다..."
+            };
+            next(ERROR);
         } else {
             res.json(result);
         }
@@ -79,7 +83,7 @@ router.get('/:project_id', function (req, res, next) {
             "      ORDER BY course_seq ";
 
 
-        console.log(project_id);
+        //console.log(project_id);
 
         connection.query(sql, [project_id], function (err, results) {
 
@@ -118,7 +122,7 @@ router.get('/:project_id', function (req, res, next) {
 
     // 컨텐츠 가져오기
     function selectContents(courses, connection, callback) {
-        console.log(courses);
+        //console.log(courses);
         var sql = "SELECT cs.course_id, currics.course_seq, ct.contents_id, ct.contents_name, csct.contents_time, " +
             "             csct.contents_count, csct.contents_set, ct.contents_url, csct.contents_seq, ct.contents_target, " +
             "             ct.contents_info, ct.contents_notice, ct.contents_voiceurl " +
@@ -142,7 +146,7 @@ router.get('/:project_id', function (req, res, next) {
 
 
                     var idx = item.course_seq - 1;
-                    console.log(courses[idx]);
+                    //console.log(courses[idx]);
                     courses[idx].contents.push(
                         {
                             "contents_id": item.contents_id,
@@ -234,9 +238,22 @@ router.get('/:project_id', function (req, res, next) {
 
     async.waterfall([getConnection, selectCourses, selectContents, selectIngProjects, makeJSON], function (err, result) {
         if (err) {
-            next(err);
+            var ERROR = {
+                "code":"E0007",
+                "message":"프로젝트 페이지 요청에 실패하였습니다..."
+            };
+            next(ERROR);
         } else {
-            res.json(result);
+            if(result.courses.length==0){
+                var ERROR = {
+                    "code":"E0007",
+                    "message":"프로젝트 페이지 요청에 실패하였습니다..."
+                };
+                next(ERROR);
+            }else{
+                res.json(result);
+            }
+
         }
     });
 

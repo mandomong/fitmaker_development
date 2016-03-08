@@ -80,20 +80,21 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
 
     function makeJSON(rankfriends, callback) {
 
-
         var result = {
-            "message": "친구목록 랭킹 요청에 성공하였습니다",
+            "message": "친구 랭킹 요청에 성공하였습니다...",
             "friends": rankfriends
 
         };
         callback(null, result);
-
-
     }
 
     async.waterfall([getConnection, selectFriendsRank, makeJSON], function (err, result) {
         if (err) {
-            next(err);
+            var ERROR = {
+                "code":"E0010",
+                "message":"친구 랭킹 요청에 실패하였습니다..."
+            };
+            next(ERROR);
         } else {
             res.json(result);
         }

@@ -89,7 +89,11 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
 
     async.waterfall([getConnection, selectFriends, makeJSON], function (err, result) {
         if (err) {
-            next(err);
+            var ERROR = {
+                "code":"E0014",
+                "message":"친구목록 조회 요청에 실패하였습니다..."
+            };
+            next(ERROR);
         } else {
             res.json(result);
         }
@@ -118,14 +122,23 @@ router.get('/:friend_id', isLoggedIn, function (req, res, next) {
                     callback(err);
                 } else {
 
-                    var friend = {
-                        "friend_name": results[0].user_name,
-                        "friend_photourl": results[0].user_photourl,
-                        "badgeCnt": results[0].badgeCnt,
-                        "hours": results[0].user_tothours,
-                        "exctype_name": results[0].exctype_name
-                    };
-                    callback(null, friend, connection);
+                    if(results.length === 0){
+                        var ERROR = {
+                            "code":"E0013",
+                            "message":"친구프로필 페이지 요청에 실패하였습니다..."
+                        };
+                        next(ERROR);
+                    }else{
+
+                        var friend = {
+                            "friend_name": results[0].user_name,
+                            "friend_photourl": results[0].user_photourl,
+                            "badgeCnt": results[0].badgeCnt,
+                            "hours": results[0].user_tothours,
+                            "exctype_name": results[0].exctype_name
+                        };
+                        callback(null, friend, connection);
+                    }
                 }
             });
         }
@@ -219,7 +232,11 @@ router.get('/:friend_id', isLoggedIn, function (req, res, next) {
 
         async.waterfall([getConnection, selectProfile, selectHistory, selectMyBadges, resultJSON], function (err, result) {
             if (err) {
-                next(err);
+                var ERROR = {
+                    "code":"E0013",
+                    "message":"친구프로필 페이지 요청에 실패하였습니다..."
+                };
+                next(ERROR);
             } else {
                 res.json(result);
             }
