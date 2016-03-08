@@ -269,19 +269,43 @@ router.route('/me')
             });
         }
 
-        //function checkPhoto(connection, callback){
-        //    var sql = "select user_id, user_photourl" +
-        //              "from user";
-        //    connection.query(sql,[user_id],function(err,results){
-        //       if(err){
-        //           connection.release();
-        //           callback(err);
-        //       } else{
-        //           //TODO : 할일
-        //       }
-        //    });
-        //
-        //}
+        function checkPhoto(connection, callback){
+            var sql = "select user_id, user_photourl " +
+            "from fitmakerdb.user " +
+            "where user_id = ?";
+            connection.query(sql,[user_id],function(err,results){
+               if(err){
+                   connection.release();
+                   callback(err);
+               } else{
+                   console.log("results - user_photourl : "+results[0].user_photourl);
+                   if(results[0].user_photourl == null){
+                       callback(null, connection);
+                   }else{
+                       var filename = path.basename(results[0].user_photourl);
+                       console.log(filename);
+                       var s3 = new AWS.S3({
+                           "accessKeyId": s3Config.key,
+                           "secretAccessKey": s3Config.secret,
+                           "region": s3Config.region
+                       });
+                       var params = {
+                           "Bucket": s3Config.bucket,
+                           "Key": s3Config.imageDir + "/" + filename
+                       };
+                       s3.deleteObject(params, function (err, data){
+                          if(err){
+                              connection.release();
+                              console.log(err, err.stack);
+                          }else{
+                              callback(null, connection);
+                          }
+                       });
+                   }
+               }
+            });
+
+        }
 
         function changePhoto(connection, callback){
 
@@ -346,7 +370,7 @@ router.route('/me')
 
         }
 
-        async.waterfall([getConnection, changePhoto], function(err, result){
+        async.waterfall([getConnection, checkPhoto, changePhoto], function(err, result){
             if(err){
                 next(err);
             }else{
