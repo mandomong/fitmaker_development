@@ -83,12 +83,15 @@ router.route('/:badge_id').get(isLoggedIn, function (req, res, next) {
     async.waterfall([getConnection, selectBadge, makeJSON], function (err, result) {
         if (err) {
             var ERROR = {
-                "code":"E0009",
-                "message":"뱃지 가져오기에 실패하였습니다..."
+                "error" : {
+                    "code":"E0017",
+                    "message":"뱃지 가져오기에 실패하였습니다..."
+                }
+
             };
             next(ERROR);
         } else {
-            res.json(result);
+            res.json({"result":result});
         }
     });
 

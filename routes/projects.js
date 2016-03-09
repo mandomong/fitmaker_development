@@ -17,7 +17,7 @@ function getConnection(callback) {
 
 
 
-// --- 6. 프로젝트 생성 --- //
+// --- 14. 프로젝트 생성 --- //
 router.post('/', function (req, res, next) {
 
 
@@ -51,14 +51,20 @@ router.post('/', function (req, res, next) {
             "message": "프로젝트를 생성 하는데 성공하였습니다",
             "project_id": projectResult.insertId
         };
-        callback(null, result);
+        callback(null, {"result":result});
 
 
     }
 
     async.waterfall([getConnection, insertProject, makeJSON], function (err, result) {
         if (err) {
-            next(err);
+            var ERROR = {
+                "error" : {
+                    "code":"E0014",
+                    "message":"프로젝트를 생성 하는데 실패하였습니다..."
+                }
+            };
+            next(ERROR);
         } else {
             res.json(result);
         }
@@ -66,7 +72,7 @@ router.post('/', function (req, res, next) {
 
 });
 
-// --- 프로젝트 가져오기 --- //
+// --- 15. 프로젝트 가져오기 --- //
 router.get('/:project_id', function (req, res, next) {
 
     var project_id = req.params.project_id;
@@ -263,9 +269,15 @@ router.get('/:project_id', function (req, res, next) {
 
     async.waterfall([getConnection, selectCourses, selectContents, selectIngProjects, selectToday, makeJSON], function (err, result) {
         if (err) {
-            next(err);
+            var ERROR = {
+                "error" : {
+                    "code":"E0015",
+                    "message":"프로젝트 페이지 요청에 실패하였습니다..."
+                }
+            };
+            next(ERROR);
         } else {
-            res.json(result);
+            res.json({"result":result});
         }
     });
 

@@ -27,7 +27,6 @@ function isLoggedIn(req, res, next){
 }
 
 // --- 5. 랭킹 보기 --- //
-
 router.route('/').get(isLoggedIn, function (req, res, next) {
     // 친구 랭킹 가져오기
     function selectFriendsRank(connection, callback) {
@@ -91,12 +90,15 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
     async.waterfall([getConnection, selectFriendsRank, makeJSON], function (err, result) {
         if (err) {
             var ERROR = {
-                "code":"E0010",
-                "message":"친구 랭킹 요청에 실패하였습니다..."
+                "error" : {
+                    "code":"E0017",
+                    "message":"친구 랭킹 요청에 실패하였습니다..."
+                }
+
             };
             next(ERROR);
         } else {
-            res.json(result);
+            res.json({"result":result});
         }
     });
 

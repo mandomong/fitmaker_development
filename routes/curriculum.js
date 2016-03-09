@@ -28,7 +28,7 @@ function isLoggedIn(req, res, next){
     }
 }
 
-// --- 5. 운동타입 및 커리큘럼 추천 --- //
+// --- 13. 운동타입 및 커리큘럼 추천 --- //
 
 // - 쿼리 스트링에 q1, q3, q6 (큐레이션) 값이 있다면 : 큐레이샨 결과인 exctype과 추천 커리큘럼 출력
 // - 큐레이션을 할때 마다 자신의 exctype변경
@@ -213,13 +213,16 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
                             async.waterfall([getConnection, selectAllCurriculum, makeAllJSON],function(err,result){
                                 if(err){
                                     var ERROR = {
-                                        "code":"E0005",
-                                        "message":"운동타입 및 커리큘럼추천 페이지 요청에 실패하였습니다..."
+                                        "error" : {
+                                            "code":"E0013",
+                                            "message":"운동타입 및 커리큘럼추천 페이지 요청에 실패하였습니다..."
+                                        }
+
                                     };
                                     next(ERROR);
                                 }else{
 
-                                    res.json(result);
+                                    res.json({"result":result});
                                 }
                             });
 
@@ -238,12 +241,15 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
                                 },selectExerciseType, selectCurriculum, makeJSON], function (err, result) {
                                 if (err) {
                                     var ERROR = {
-                                        "code":"E0005",
-                                        "message":"운동타입 및 커리큘럼추천 페이지 요청에 실패하였습니다..."
+                                        "error" : {
+                                            "code":"E0013",
+                                            "message":"운동타입 및 커리큘럼추천 페이지 요청에 실패하였습니다..."
+                                        }
+
                                     };
                                     next(ERROR);
                                 } else {
-                                    res.json(result);
+                                    res.json({"result":result});
                                 }
                             });
 
@@ -262,8 +268,10 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
         async.waterfall([getConnection, selectExerciseId, selectExerciseType, selectCurriculum, makeJSON],function(err,result){
             if(err){
                 var ERROR = {
-                    "code":"E0005",
-                    "message":"운동타입 및 커리큘럼추천 페이지 요청에 실패하였습니다..."
+                    "error" : {
+                        "code":"E0013",
+                        "message":"운동타입 및 커리큘럼추천 페이지 요청에 실패하였습니다..."
+                    }
                 };
                 next(ERROR);
             } else {
@@ -279,7 +287,7 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
                         if (err) {
                             callback(err);
                         } else {
-                            callback(null, result);
+                            callback(null, {"result":result});
 
                         }
 
@@ -290,17 +298,20 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
                 async.waterfall([getConnection, updateExctype], function (err, result) {
                     if (err) {
                         var ERROR = {
-                            "code":"E0005",
-                            "message":"운동타입 및 커리큘럼추천 페이지 요청에 실패하였습니다..."
+                            "error" : {
+                                "code":"E0013",
+                                "message":"운동타입 및 커리큘럼추천 페이지 요청에 실패하였습니다..."
+                            }
                         };
                         next(ERROR);
                     } else {
-                        next(null);
+                        //next(null);
+
                     }
                 });
 
                 //출력
-                res.json(result);
+                res.json({"result":result});
 
             }
         });
