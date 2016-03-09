@@ -89,7 +89,11 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
 
     async.waterfall([getConnection, selectFriends, makeJSON], function (err, result) {
         if (err) {
-            next(err);
+            var ERROR = {
+                "code":"E0014",
+                "message":"친구목록 조회 요청에 실패하였습니다..."
+            };
+            next(ERROR);
         } else {
             res.json(result);
         }
@@ -106,10 +110,10 @@ router.get('/:friend_id', isLoggedIn, function (req, res, next) {
 
         function selectProfile(connection, callback) {
             var sql = "SELECT u.user_name, u.user_photourl, vub.badgecnt, vuh.user_tothours, et.exctype_name " +
-                "      FROM fitmakerdb.user u JOIN exercisetype et ON (et.exctype_id = u.exctype_id) " +
-                "                             LEFT JOIN v_user_hours vuh ON (u.user_id = vuh.user_id) " +
-                "                             LEFT JOIN v_user_badgecnt vub ON (vub.user_id = u.user_id) " +
-                "      WHERE u.user_id = ?";
+              "      FROM fitmakerdb.user u JOIN exercisetype et ON (et.exctype_id = u.exctype_id) " +
+              "                             LEFT JOIN v_user_hours vuh ON (u.user_id = vuh.user_id) " +
+              "                             LEFT JOIN v_user_badgecnt vub ON (vub.user_id = u.user_id) " +
+              "      WHERE u.user_id = ?";
 
             connection.query(sql, [friend_id], function (err, results) {
 
@@ -118,23 +122,32 @@ router.get('/:friend_id', isLoggedIn, function (req, res, next) {
                     callback(err);
                 } else {
 
-                    var friend = {
-                        "friend_name": results[0].user_name,
-                        "friend_photourl": results[0].user_photourl,
-                        "badgeCnt": results[0].badgeCnt,
-                        "hours": results[0].user_tothours,
-                        "exctype_name": results[0].exctype_name
-                    };
-                    callback(null, friend, connection);
+                    if(results.length === 0){
+                        var ERROR = {
+                            "code":"E0013",
+                            "message":"친구프로필 페이지 요청에 실패하였습니다..."
+                        };
+                        next(ERROR);
+                    }else{
+
+                        var friend = {
+                            "friend_name": results[0].user_name,
+                            "friend_photourl": results[0].user_photourl,
+                            "badgeCnt": results[0].badgeCnt,
+                            "hours": results[0].user_tothours,
+                            "exctype_name": results[0].exctype_name
+                        };
+                        callback(null, friend, connection);
+                    }
                 }
             });
         }
 
         function selectHistory(friend, connection, callback) {
             var sql = "SELECT project_id, project_name, " +
-                "             (CASE WHEN project_enddate > DATE(date_format(CONVERT_TZ(now(), '+00:00', '+9:00'), '%Y-%m-%d %H-%i-%s')) THEN 1 ELSE 0 END) AS project_on " +
-                "      FROM fitmakerdb.project " +
-                "      WHERE user_id = ?";
+              "             (CASE WHEN project_enddate > DATE(date_format(CONVERT_TZ(now(), '+00:00', '+9:00'), '%Y-%m-%d %H-%i-%s')) THEN 1 ELSE 0 END) AS project_on " +
+              "      FROM fitmakerdb.project " +
+              "      WHERE user_id = ?";
 
             connection.query(sql, [friend_id], function (err, results) {
 
@@ -168,8 +181,8 @@ router.get('/:friend_id', isLoggedIn, function (req, res, next) {
 
         function selectMyBadges(project_history, friend, connection, callback) {
             var sql = "SELECT b.badge_id, b.badge_name, b.badge_photourl " +
-                "      FROM user_badge ub JOIN badge b ON ub.badge_id = b.badge_id " +
-                "      WHERE user_id = ? ";
+              "      FROM user_badge ub JOIN badge b ON ub.badge_id = b.badge_id " +
+              "      WHERE user_id = ? ";
 
             connection.query(sql, [friend_id], function (err, results) {
                 connection.release();
@@ -219,7 +232,11 @@ router.get('/:friend_id', isLoggedIn, function (req, res, next) {
 
         async.waterfall([getConnection, selectProfile, selectHistory, selectMyBadges, resultJSON], function (err, result) {
             if (err) {
-                next(err);
+                var ERROR = {
+                    "code":"E0013",
+                    "message":"친구프로필 페이지 요청에 실패하였습니다..."
+                };
+                next(ERROR);
             } else {
                 res.json(result);
             }

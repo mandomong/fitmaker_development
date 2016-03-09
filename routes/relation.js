@@ -167,7 +167,7 @@ router.route('/')
 
 
 // --- 회원 친구 추가 --- //
-router.route('/req')
+router.route('/')
   .post(isLoggedIn, function (req, res, next){
 
     var user_id = req.user.id;;
@@ -200,26 +200,22 @@ router.route('/req')
       });
     }
 
-    function resultJSON(result, results, callback) {
-
-      var result_info = {
-        "message": "회원 검색에 성공하였습니다...",
-        "user": {"user_id": user_id},
-        "friends": {
-          "friend_id": result.friends.friend_id,
-          "friend_name": result.friends.friend_name,
-          "friend_photourl": result.friends.friend_photourl},
-        "state":results.state
+    function resultJSON(result, callback) {
+      var message = {
+        "message": "친구 요청에 성공하였습니다..."
       };
-      callback(null, result_info);
-
+      callback(null, message);
     }
 
     async.waterfall([getConnection, insertRelation, resultJSON],function(err, result){
       if(err){
-        next(err);
+        var ERROR = {
+          "code":"E0017",
+          "message":"친구 요청에 실패하였습니다..."
+        };
+        next(ERROR);
       }else{
-        res.json("친구 관계가 생성되었습니다...");
+        res.json(result);
       }
     });
 });
@@ -308,11 +304,11 @@ router.route('/res')
 
 
 // --- 받은 친구 요청에 대한 응답 하기 --- //
-router.route('/req')
+router.route('/:friend_id')
   .put(isLoggedIn, function (req, res, next){
 
     var user_id = req.user.id;
-    var friend_id = req.body.friend_id;
+    var friend_id = req.params.friend_id;
     var state = req.body.state;
 
 
@@ -335,7 +331,15 @@ router.route('/req')
         if(err){
           callback(err);
         } else{
-          callback(null);
+          if(result.fieldCount == 0){
+            var ERROR = {
+              "code":"E0015",
+              "message":"친구의 요청에 대한 응답에 실패하였습니다..."
+            };
+            next(ERROR);
+          }else{
+            callback(null);
+          }
         }
       });
     }
@@ -353,7 +357,11 @@ router.route('/req')
 
     async.waterfall([getConnection, updateRelation, resultJSON],function(err, result){
       if(err){
-        next(err);
+        var ERROR = {
+          "code":"E0015",
+          "message":"친구의 요청에 대한 응답에 실패하였습니다..."
+        };
+        next(ERROR);
       }else{
         res.json(result);
       }

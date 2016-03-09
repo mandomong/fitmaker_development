@@ -23,10 +23,10 @@ var projects = require('./routes/projects');
 var relation = require('./routes/relation');
 var friends = require('./routes/friends');
 var resfriends = require('./routes/resfriends');
-//var photos = require('./routes/photos');
+var badges = require('./routes/badges');
 
 var app = express();
-app.set('env', 'production');
+app.set('env', 'development');
 
 
 // view engine setup
@@ -46,7 +46,7 @@ app.use(session({
   "cookie": { "maxAge": 86400000 },
   "resave": true,
   "saveUninitialized": true
-}))
+}));
 
 //4. passport 초기화, 세션 - 순서에 민감하다 !
 app.use(passport.initialize());
@@ -67,7 +67,7 @@ app.use('/auth',auth);
 app.use('/relation',relation);
 app.use('/friends',friends);
 app.use('/resfriends', resfriends);
-//app.use('/photos', photos);
+app.use('/badges', badges);
 
 
 // catch 404 and forward to error handler
@@ -84,10 +84,7 @@ app.use(function(req, res, next) {
 if (app.get('env') === 'development') {
   app.use(function(err, req, res, next) {
     res.status(err.status || 500);
-    res.json({
-      message: err.message,
-      error: err
-    });
+    res.json(err);
   });
 }
 

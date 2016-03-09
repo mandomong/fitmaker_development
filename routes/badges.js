@@ -30,13 +30,8 @@ function isLoggedIn(req, res, next){
 // --- 뱃지 조회 --- //
 router.route('/:badge_id').get(isLoggedIn, function (req, res, next) {
 
-
-
-
     var badge_id = req.params.badge_id;
     console.log(badge_id);
-
-
 
     // 뱃지조회하기
     function selectBadge(connection, callback) {
@@ -44,20 +39,27 @@ router.route('/:badge_id').get(isLoggedIn, function (req, res, next) {
             "      FROM fitmakerdb.badge " +
             "      WHERE badge_id = ? ";
 
-
-
-
         connection.query(sql, [badge_id], function (err, results) {
             connection.release();
             if (err) {
                 callback(err);
             } else {
+                if(results.length === 0){
+                    var ERROR = {
+                        "code":"E0009",
+                        "message":"뱃지 가져오기에 실패하였습니다..."
+                    };
+                    next(ERROR);
 
-                var badge = {
-                    "badge_name" : results[0].badge_name,
-                    "badge_photourl" : results[0].badge_photourl,
-                };
-                callback(null, badge);
+                }else{
+                    var badge = {
+                        "badge_name" : results[0].badge_name,
+                        "badge_photourl" : results[0].badge_photourl,
+                    };
+                    callback(null, badge);
+                }
+
+
 
             }
 
@@ -69,7 +71,7 @@ router.route('/:badge_id').get(isLoggedIn, function (req, res, next) {
 
 
         var result = {
-            "message": "뱃지 가져오기에 성공하였습니다",
+            "message": "뱃지 가져오기에 성공하였습니다...",
             "badge": badge
 
         };
@@ -80,7 +82,11 @@ router.route('/:badge_id').get(isLoggedIn, function (req, res, next) {
 
     async.waterfall([getConnection, selectBadge, makeJSON], function (err, result) {
         if (err) {
-            next(err);
+            var ERROR = {
+                "code":"E0009",
+                "message":"뱃지 가져오기에 실패하였습니다..."
+            };
+            next(ERROR);
         } else {
             res.json(result);
         }

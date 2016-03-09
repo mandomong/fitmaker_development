@@ -17,7 +17,7 @@ module.exports = function(passport) {
             if (err) {
                 done(err);
             } else {
-                var sql = "SELECT user_id, user_name, email, " +
+                var sql = "SELECT user_id, user_name, email, user_photourl, " +
                   "facebook_id, facebook_email, facebook_username, facebook_photo " +
                   "FROM fitmakerdb.user " +
                   "WHERE user_id = ?";
@@ -29,8 +29,9 @@ module.exports = function(passport) {
                     } else {
                         var user = { // results로부터 가져온다.
                             "id": results[0].user_id,
-                            "username": results[0].user_name
-                            //"photoUrl" : results[0].photo_path //사진 경로를 넣는다면 이런 식으로 넣자...
+                            "username": results[0].user_name,
+                            "email": results[0].email,
+                            "photourl" : results[0].user_photourl //사진 경로를 넣는다면 이런 식으로 넣자...
                         };
                         done(null, user);
                     }
@@ -40,11 +41,11 @@ module.exports = function(passport) {
     });
 
     passport.use('local-login', new LocalStrategy({ // 로그인할 때 사용하겠다
-        usernameField: "user_name",//email을 id로 사용
+        usernameField: "email",//email을 id로 사용
         passwordField: "password",
         passReqToCallback: true //false일 경우 다음 함수의 req를 받지 않는다.
 
-    }, function (req, username, password, done) {
+    }, function (req, email, password, done) {
 
         function getConnection(callback) {
             //pool에서 connection 얻어오기.
@@ -59,11 +60,11 @@ module.exports = function(passport) {
 
         function selectUser(connection, callback) {
             // DB에서 username과 관련딘 id와 password를 조회하는 쿼리를 작성한다.
-            var sql = "SELECT user_id, user_name, password " +
+            var sql = "SELECT user_id, user_name, email, password " +
               "FROM fitmakerdb.user " +
-              "WHERE user_name=?";
+              "WHERE email=?";
 
-            connection.query(sql, [username], function (err, results) {
+            connection.query(sql, [email], function (err, results) {
                 connection.release();
                 if (err) {
                     callback(err);
@@ -75,11 +76,11 @@ module.exports = function(passport) {
                     } else {
 
                         var user = {
-                            "result":"로그인이 정상적으로 처리되었습니다",
+                            //"result":"로그인이 정상적으로 처리되었습니다",
                             "id": results[0].user_id,
                             "hashPassword": results[0].password
                         };
-                        console.log(user);
+                        console.log(user.id + "번 회원이 로그인 하였습니다...");
                         callback(null, user);
                     }
                 }
@@ -107,6 +108,7 @@ module.exports = function(passport) {
             } else {
                 //user 객체에서 password와 hash를 빼서 보내줘야 한다. 보안상 문제가 되기 때문에
                 delete user.hashPassword;
+                user.message = "로그인이 정상적으로 처리되었습니다...";
                 done(null, user);
             }
         });

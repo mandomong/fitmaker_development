@@ -59,10 +59,7 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
             } else {
                 // 운동 타입
                 callback(null,results[0].exctype_id, connection);
-
             }
-
-
         });
     }
 
@@ -71,8 +68,6 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
         var sql = "SELECT exctype_id, exctype_name, exctype_info, exctype_photourl " +
             "      FROM fitmakerdb.exercisetype " +
             "      WHERE exctype_id = ? ";
-
-
 
         connection.query(sql, [exctype_id], function(err, results){
 
@@ -217,7 +212,11 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
 
                             async.waterfall([getConnection, selectAllCurriculum, makeAllJSON],function(err,result){
                                 if(err){
-                                    next(err);
+                                    var ERROR = {
+                                        "code":"E0005",
+                                        "message":"운동타입 및 커리큘럼추천 페이지 요청에 실패하였습니다..."
+                                    };
+                                    next(ERROR);
                                 }else{
 
                                     res.json(result);
@@ -238,7 +237,11 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
 
                                 },selectExerciseType, selectCurriculum, makeJSON], function (err, result) {
                                 if (err) {
-                                    next(err);
+                                    var ERROR = {
+                                        "code":"E0005",
+                                        "message":"운동타입 및 커리큘럼추천 페이지 요청에 실패하였습니다..."
+                                    };
+                                    next(ERROR);
                                 } else {
                                     res.json(result);
                                 }
@@ -258,7 +261,11 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
         // 자신의 운동 타입이 변경 됨
         async.waterfall([getConnection, selectExerciseId, selectExerciseType, selectCurriculum, makeJSON],function(err,result){
             if(err){
-                next(err);
+                var ERROR = {
+                    "code":"E0005",
+                    "message":"운동타입 및 커리큘럼추천 페이지 요청에 실패하였습니다..."
+                };
+                next(ERROR);
             } else {
                 //타입 변경
                 function updateExctype(connection, callback) {
@@ -282,14 +289,19 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
 
                 async.waterfall([getConnection, updateExctype], function (err, result) {
                     if (err) {
-                        next(err);
+                        var ERROR = {
+                            "code":"E0005",
+                            "message":"운동타입 및 커리큘럼추천 페이지 요청에 실패하였습니다..."
+                        };
+                        next(ERROR);
                     } else {
-
+                        next(null);
                     }
                 });
 
                 //출력
                 res.json(result);
+
             }
         });
     }
