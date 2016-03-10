@@ -65,11 +65,11 @@ router.route('/')
 
                     function iterator(item, callback) {
                         search_users.push({
-                            "user_id": item.user_id,
-                            "user_name": item.user_name,
-                            "user_email": item.email,
-                            "user_photourl": item.user_photourl,
-                            "user_state": item.state == null ? 2 : item.state
+                            "friend_id": item.user_id,
+                            "friend_name": item.user_name,
+                            "friend_email": item.email,
+                            "friend_photourl": item.user_photourl,
+                            "friend_state": item.state == null ? 2 : item.state
                         });
                         callback(null);
                     }
@@ -88,7 +88,7 @@ router.route('/')
         function resultJSON(search_users, callback) {
             var result = {
                 "message": "회원 검색에 성공하였습니다...",
-                "users": search_users
+                "friends": search_users
             };
             callback(null, {"result":result});
         }

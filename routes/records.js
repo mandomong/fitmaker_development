@@ -1,4 +1,5 @@
 var express = require('express');
+var gcm = require('node-gcm');
 var router = express.Router();
 var async = require('async');
 
@@ -118,7 +119,6 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
 
     //뱃지 저장
     function insertBadge(badge_id, connection, callback) {
-        console.log(badge_id);
         if (!badge_id) {
             callback(null, null);
         } else {
@@ -161,7 +161,31 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
             };
             next(ERROR);
         } else {
+            /* url 쪽으로 데이터를 가지고 이동 */
+
+            //push
+
+            //var message = new gcm.Message();
+            ////알림은 Noti
+            //message.addNotification("title", "mandoo");
+            //message.addNotification("body", "LOL let's play");
+            //message.addNotification("icon", "ic_launcher");
+            //var regTokens ="dnGt_RNzIr4:APA91bF7LljoeCYJhQ5QQbv6fS0OwCQRdRT2WJfYhfV-BeCjtEh-h5Lcai0PJhS16FBcus6jfGf6So5OJyauBpzFFYM7HRp6k1iJUJsmuamgkvAmSKr5XInYdAV-Jc-s49rFuZy5OzjB";
+            //
+            //
+            //var sender = new gcm.Sender('AIzaSyCu1ualuW7tJ4quKlL6RRyBVklvx7_1lj4');
+            //
+            //sender.send(message, regTokens, function(err) {
+            //    if (err) {
+            //        next(err);
+            //    } else {
+            //        res.json({"result":result});
+            //
+            //    }
+            //});
+
             res.json({"result":result});
+
         }
     });
 
