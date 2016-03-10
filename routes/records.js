@@ -89,11 +89,9 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
 
         connection.query(sql, [user_id], function (err, results) {
 
-
             if (err) {
                 callback(err);
             } else {
-
                 var mybadges = [];
 
                 function iterator(item, callback) {
@@ -116,8 +114,6 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
 
             }
         });
-
-
     }
 
     //뱃지 저장
@@ -129,7 +125,6 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
 
             var sql = "INSERT INTO fitmakerdb.user_badge (user_id, badge_id, badge_date) " +
                 "      VALUES (?, ?, sysdate()) ";
-
 
             connection.query(sql, [user_id, badge_id], function (err, result) {
                 connection.release(); //커넥션을 반납해야 한다.

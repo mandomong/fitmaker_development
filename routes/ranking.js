@@ -30,7 +30,7 @@ function isLoggedIn(req, res, next){
 router.route('/').get(isLoggedIn, function (req, res, next) {
     // 친구 랭킹 가져오기
     function selectFriendsRank(connection, callback) {
-        var sql = "SELECT f.user_id, f.user_name, vuh.user_tothours " +
+        var sql = "SELECT f.user_id, f.user_name, f.user_photourl, vuh.user_tothours " +
             "      FROM v_user_hours vuh JOIN (SELECT u.user_id, u.user_name " +
             "                                  FROM fitmakerdb.friend f JOIN fitmakerdb.user u ON f.user_id_res = u.user_id " +
             "                                  WHERE user_id_req = ? AND state = 1 " +
@@ -58,7 +58,8 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
                     rankfriends.push({
                         "friend_id": item.user_id,
                         "friend_name": item.user_name,
-                        "friend_hours": item.user_tothours
+                        "friend_hours": item.user_tothours,
+                        "friend_photourl": item.user_photourl
                     });
                     callback(null);
                 }
