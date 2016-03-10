@@ -8,10 +8,11 @@ var config = {
     "host": process.env.FITMAKER_DB_SERVER,
     "port": process.env.FITMAKER_DB_PORT,
     "user": process.env.FITMAKER_DB_USERNAME,
+    //"user": "fitmakeradmin2",
     "password": process.env.FITMAKER_DB_PASSWORD,
     "database": process.env.FITMAKER_DB,
     "ssl": "Amazon RDS",
-    "debug": false
+    "debug": true
 };
 
 //

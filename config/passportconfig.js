@@ -217,11 +217,12 @@ module.exports = function(passport) {
     passport.use('facebook-token', new FacebookTokenStrategy({
         "clientID" : authConfig.facebook.appId,
         "clientSecret" : authConfig.facebook.appSecret,
-        "profileFields" : ["id", "displayName", "eamil", "photos"]
+        "profileFields" : ["id", "displayName", "email", "photos"]
     }, function(accessToken, refreshToken, profile, done){
 
         function getConnection(callback){
             pool.getConnection(function (err, connection){
+
                 if(err){
                     callback(err);
                 }else{
@@ -231,7 +232,8 @@ module.exports = function(passport) {
         }
 
         function selectOrCreateUser(connection, callback){
-            var sql = "SELECT user_id, facebook_id, facebook_email, facebook_username, facebook_photo " +
+
+            var sql = "SELECT user_id, facebook_id, email, user_name, user_photourl, facebook_token " +
               "FROM user " +
               "WHERE facebook_id = ?";
             connection.query(sql, [profile.id], function (err, results){
@@ -241,7 +243,7 @@ module.exports = function(passport) {
                 } else{
                     if(results.length === 0){
                         var insert = "INSERT INTO user (facebook_id, facebook_token, " +
-                          "                  facebook_email, facebook_username, facebook_photo) " +
+                          "                  email, user_name, user_photourl) " +
                           "VALUES (?,?,?,?,?)";
 
                         connection.query(insert, [profile.id, accessToken, profile.emails[0].value, profile.displayName,
@@ -252,7 +254,7 @@ module.exports = function(passport) {
                             }else{
                                 connection.release();
                                 var user = {
-                                    "id" : reesult.insertId,
+                                    "id" : result.insertId,
                                     "facebookId" : profile.id,
                                     "facebookEmail" : profile.emails[0].value,
                                     "facebookName" : profile.displayName,
@@ -261,23 +263,25 @@ module.exports = function(passport) {
                                 callback(null, user);
                             }
                         });
-                    }else{
+                    } else {
+                        //DB에 사용자정보가 있으며 DB의 facebook 토큰과 안드로이드로 부터 받은 facebook 토큰이 같을때
                         if(accessToken === results[0].facebook_token){
                             connection.release();
                             var user = {
-                                "id" : results[0].id,
+                                "id" : results[0].user_id,
                                 "facebookId" : results[0].facebook_id,
-                                "facebookEmail" : results[0].facebook_email,
-                                "facebookName" : results[0].facebook_username,
-                                "facebookPhoto" : results[0].facebook_photo
+                                "facebookEmail" : results[0].email,
+                                "facebookName" : results[0].user_name,
+                                "facebookPhoto" : results[0].user_photourl
                             };
                             callback(null, user);
                         }else{
-                            var update = "UPDATE firmakerdb.user " +
+
+                            var update = "UPDATE fitmakerdb.user " +
                               "SET facebook_token = ?, " +
-                              "    facebook_email = ?, " +
-                              "    facebook_username = ?, " +
-                              "    facebook_photo = ? " +
+                              "    email = ?, " +
+                              "    user_name = ?, " +
+                              "    user_photourl = ? " +
                               "WHERE facebook_id = ?";
                             connection.query(update, [accessToken, profile.emails[0].value,
                                 profile.displayName, profile.photos[0].value, profile.id], function(err, result){
@@ -285,6 +289,7 @@ module.exports = function(passport) {
                                 if(err){
                                     callback(err);
                                 }else{
+
                                     var user = {
                                         "id" : results[0].id,
                                         "facebookId" : profile.id,
@@ -292,6 +297,7 @@ module.exports = function(passport) {
                                         "facebookName" : profile.displayName,
                                         "facebookPhoto" : profile.photos[0].value
                                     };
+
                                     callback(null, user);
                                 }
                             });

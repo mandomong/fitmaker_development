@@ -86,7 +86,7 @@ router.get('/facebook/callback', function (req, res, next) { //앱에서는 face
 });
 
 // ----- 3. 페이스북 로그인 ------
-router.get('/facebook/token', function (req, res, next) {
+router.post('/facebook/token', function (req, res, next) {
     //콜백을 빼고 facebook token이 되었다!
 
     if (req.secure) {
