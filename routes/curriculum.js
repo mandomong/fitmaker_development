@@ -101,7 +101,7 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
 
         connection.query(sql, [exctype.exctype_id], function(err, results){
 
-            connection.release(); //커넥션을 반납해야 한다.
+
 
             console.log(results);
             if(err){
@@ -110,7 +110,14 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
                 var curriculum = [];
                 function iterator (item, callback) {
                     console.log(item);
-                    curriculum.push(item);
+                    curriculum.push({
+                        "curri_id" : item.curri_id,
+                        "curri_name" : item.curri_name,
+                        "curri_photourl" : item.curri_photourl,
+                        "curri_type" : item.curri_type,
+                        "curri_info" : item.curri_info,
+                        "contents" : []
+                    });
                     callback(null);
                 }
                 async.each(results, iterator, function (err) {
@@ -119,7 +126,7 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
                     }
                 });
                 console.log(curriculum);
-                callback(null,exctype, curriculum);
+                callback(null, exctype, curriculum, connection);
 
             }
         });
@@ -134,7 +141,7 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
 
         connection.query(sql, function(err, results){
 
-            connection.release(); //커넥션을 반납해야 한다.
+
 
             console.log(results);
             if(err){
@@ -153,6 +160,65 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
                 });
                 console.log(curriculum);
                 callback(null, curriculum);
+
+            }
+        });
+    }
+
+    // 커리큘럼의 대표 컨텐츠목록 가져오기
+    function selectContents(exctype, curriculum, connection, callback) {
+        console.log(exctype);
+        var sql = "SELECT v.curri_id, v.course_id, v.course_name, v.contents_id, v.contents_name, v.contents_target, v.contents_url " +
+            "      FROM v_curri_maincourse v JOIN (SELECT c.curri_id " +
+            "                                      FROM curriculum c join (SELECT  exctype_id, curri_id " +
+            "                                                              FROM exctype_curri " +
+            "                                                              WHERE exctype_id = ?) ec " +
+            "                                                        ON (c.curri_id = ec.curri_id)) ecc " +
+            "                                ON (v.curri_id = ecc.curri_id) ";
+
+
+        connection.query(sql, [exctype.exctype_id], function (err, results) {
+
+            connection.release(); //커넥션을 반납해야 한다.
+
+
+            if (err) {
+                callback(err);
+            } else {
+
+                var i = 0;
+
+                function iterator(item, callback) {
+                    if(curriculum[i].curri_id === item.curri_id) {
+                        curriculum[i].contents.push({
+                            "contents_id" : item.contents_id,
+                            "contents_name" : item.contents_name,
+                            "contents_target" : item.contents_target,
+                            "contents_url" : item.contents_url
+                        });
+                    } else {
+                        i++;
+                        if(i < curriculum.length) {
+                            curriculum[i].contents.push({
+                                "contents_id" : item.contents_id,
+                                "contents_name" : item.contents_name,
+                                "contents_target" : item.contents_target,
+                                "contents_url" : item.contents_url
+                            });
+                        }
+
+                    }
+
+                    callback(null);
+                }
+
+                async.each(results, iterator, function (err) {
+                    if (err) {
+                        callback(err);
+                    }
+                });
+
+                callback(null, exctype, curriculum);
 
             }
         });
@@ -238,7 +304,7 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
                                         callback(null,results[0].exctype_id,connection);
                                     }
 
-                                },selectExerciseType, selectCurriculum, makeJSON], function (err, result) {
+                                },selectExerciseType, selectCurriculum, selectContents, makeJSON], function (err, result) {
                                 if (err) {
                                     var ERROR = {
                                         "error" : {
@@ -265,7 +331,7 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
     } else {
         // 큐레이션 값이 존재 : 큐레이션 결과와 추천 커리큘럼 출력
         // 자신의 운동 타입이 변경 됨
-        async.waterfall([getConnection, selectExerciseId, selectExerciseType, selectCurriculum, makeJSON],function(err,result){
+        async.waterfall([getConnection, selectExerciseId, selectExerciseType, selectCurriculum, selectContents, makeJSON],function(err,result){
             if(err){
                 var ERROR = {
                     "error" : {
