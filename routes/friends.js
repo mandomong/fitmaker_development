@@ -140,8 +140,8 @@ router.get('/:friend_id', isLoggedIn, function (req, res, next) {
                         var friend = {
                             "friend_name": results[0].user_name,
                             "friend_photourl": results[0].user_photourl,
-                            "badgeCnt": results[0].badgeCnt,
-                            "hours": results[0].user_tothours,
+                            "friend_badgeCnt": results[0].badgeCnt,
+                            "friend_hours": results[0].user_tothours,
                             "exctype_name": results[0].exctype_name
                         };
                         callback(null, friend, connection);

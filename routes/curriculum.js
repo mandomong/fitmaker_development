@@ -150,7 +150,14 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
                 var curriculum = [];
                 function iterator (item, callback) {
                     console.log(item);
-                    curriculum.push(item);
+                    curriculum.push({
+                        "curri_id" : item.curri_id,
+                        "curri_name" : item.curri_name,
+                        "curri_photourl" : item.curri_photourl,
+                        "curri_type" : item.curri_type,
+                        "curri_info" : item.curri_info,
+                        "contents" : []
+                    });
                     callback(null);
                 }
                 async.each(results, iterator, function (err) {
@@ -159,7 +166,7 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
                     }
                 });
                 console.log(curriculum);
-                callback(null, curriculum);
+                callback(null, curriculum, connection);
 
             }
         });
@@ -264,6 +271,61 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
                         if(parseInt(results[0].exctype_id) === 9) {
                             //exctype 이 존재하지 않을때
                             //exctype_id = 9 가 null값 = 디폴트
+
+                            function selectALLContents(curriculum, connection, callback) {
+
+                                var sql = "SELECT v.curri_id, c.curri_name, v.course_id, v.course_name, v.contents_id, v.contents_name, v.contents_target, v.contents_url " +
+                                    "      FROM v_curri_maincourse v JOIN curriculum c ON (v.curri_id = c.curri_id) ";
+
+
+                                connection.query(sql, function (err, results) {
+
+                                    connection.release(); //커넥션을 반납해야 한다.
+
+
+                                    if (err) {
+                                        callback(err);
+                                    } else {
+
+                                        var i = 0;
+
+                                        function iterator(item, callback) {
+                                            if(curriculum[i].curri_id === item.curri_id) {
+                                                curriculum[i].contents.push({
+                                                    "contents_id" : item.contents_id,
+                                                    "contents_name" : item.contents_name,
+                                                    "contents_target" : item.contents_target,
+                                                    "contents_url" : item.contents_url
+                                                });
+                                            } else {
+                                                i++;
+                                                if(i < curriculum.length) {
+                                                    curriculum[i].contents.push({
+                                                        "contents_id" : item.contents_id,
+                                                        "contents_name" : item.contents_name,
+                                                        "contents_target" : item.contents_target,
+                                                        "contents_url" : item.contents_url
+                                                    });
+                                                }
+
+                                            }
+
+                                            callback(null);
+                                        }
+
+                                        async.each(results, iterator, function (err) {
+                                            if (err) {
+                                                callback(err);
+                                            }
+                                        });
+
+                                        callback(null, curriculum);
+
+                                    }
+                                });
+                            }
+
+
                             function makeAllJSON(curriculum, callback) {
 
 
@@ -276,7 +338,7 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
 
                             }
 
-                            async.waterfall([getConnection, selectAllCurriculum, makeAllJSON],function(err,result){
+                            async.waterfall([getConnection, selectAllCurriculum, selectALLContents, makeAllJSON],function(err,result){
                                 if(err){
                                     var ERROR = {
                                         "error" : {

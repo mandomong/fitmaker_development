@@ -63,7 +63,7 @@ router.route('/')
                         "friend_id": item.user_id,
                         "friend_name": item.user_name,
                         "friend_photourl": item.user_photourl,
-                        "state": item.state
+                        "friend_state": item.state
                     });
                 }
                 callback(null);
