@@ -10,6 +10,9 @@ var passport = require('passport');
 global.pool = require('./config/dbpool');
 require('./config/passportconfig')(passport);
 
+var winston = require('winston');
+var loggingconfig = require('./config/loggingconfig'); // logging config
+
 // ----- Loading router-Level middleware modules ----- //
 var auth = require('./routes/auth');
 
@@ -84,6 +87,9 @@ app.use(function(req, res, next) {
 if (app.get('env') === 'development') {
   app.use(function(err, req, res, next) {
 
+    var Logger = new winston.Logger(loggingconfig);
+    Logger.log('warn', err);
+
     res.status(err.status || 500);
     res.json(err);
   });
@@ -93,6 +99,7 @@ if (app.get('env') === 'development') {
 // no stacktraces leaked to user
 app.use(function(err, req, res, next) {
   res.status(err.status || 500);
+  Logger.log('warn', err);
 
   res.json({
     message: err.message,

@@ -1,4 +1,3 @@
-// 작성자 : 장한솔
 
 //curriculum
 var express = require('express');

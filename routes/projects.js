@@ -129,7 +129,7 @@ router.get('/:project_id', function (req, res, next) {
         console.log(courses);
         var sql = "SELECT cs.course_id, currics.course_seq, ct.contents_id, ct.contents_name, csct.contents_time, " +
           "             csct.contents_count, csct.contents_set, ct.contents_url, csct.contents_seq, ct.contents_target, " +
-          "             ct.contents_info, ct.contents_notice, ct.contents_voiceurl " +
+          "             ct.contents_info, ct.contents_notice, ct.contents_voiceurl, ct.thumbnail_url " +
           "      FROM fitmakerdb.project p JOIN curriculum curri ON p.curri_id = curri.curri_id " +
           "                                JOIN curri_course currics ON curri.curri_id = currics.curri_id " +
           "                                JOIN course cs ON cs.course_id = currics.course_id " +
@@ -163,7 +163,8 @@ router.get('/:project_id', function (req, res, next) {
                           "contents_target": item.contents_target,
                           "contents_info": item.contents_info,
                           "contents_notice": item.contents_notice,
-                          "contents_voiceurl": item.contents_voiceurl
+                          "contents_voiceurl": item.contents_voiceurl,
+                          "thumbnail":item.thumbnail_url
                       }
                     );
                     callback(null);

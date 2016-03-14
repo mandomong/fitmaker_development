@@ -11,6 +11,10 @@ var https = require('https');
 var fs = require('fs');
 var path = require('path');
 
+var winston = require('winston');
+var fileRotateDate = require('winston-filerotatedate');
+var DailyRotateFile = require('winston-daily-rotate-file');
+
 /**
  * Get httpPort & httpsPort from environment and store in Express.
  */

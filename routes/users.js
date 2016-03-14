@@ -119,7 +119,8 @@ router.post('/', function (req, res, next) {
         var password = req.body.password;
         var email = req.body.email;
         var birthday = req.body.birthday;
-        var usertype = 1; // usertype 1은 회원, 0은 비회원
+        //var usertype = 1; // usertype 1은 회원, 0은 비회원
+
 
         //중복 체크
 
@@ -204,9 +205,9 @@ router.post('/', function (req, res, next) {
 
         // 4. DB insert
         function insertMember(connection, hashPassword, callback) {
-            var sql = "insert into fitmakerdb.user (user_name, password, email, birthday,user_type) " +
-                "values (?, ?, ?, ?, ?)";
-            connection.query(sql, [username, hashPassword, email, birthday, usertype], function (err, result) {
+            var sql = "insert into fitmakerdb.user (user_name, password, email, birthday) " +
+                "values (?, ?, ?, ?)";
+            connection.query(sql, [username, hashPassword, email, birthday], function (err, result) {
                 connection.release();
 
                 if (err) {

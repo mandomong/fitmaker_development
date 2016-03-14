@@ -58,10 +58,7 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
             "                    join course c on (c.course_id = cc.course_id) " +
             "      WHERE p.user_id = ? ";
 
-
         connection.query(sql, [user_id], function (err, results) {
-
-
 
             //console.log(results);
             if (err) {
