@@ -14,7 +14,7 @@ var logging = {
     //  filename: 'warn-'
     //}),
     new fileRotateDate.FileRotateDate({
-      level: 'debug',
+      level: 'warn',
       filename: path.join(__dirname,'../logging/app_daily.log'),
       maxsize: 1024*1024
     })
