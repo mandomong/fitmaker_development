@@ -31,21 +31,25 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
     // 친구 랭킹 가져오기
     function selectFriendsRank(connection, callback) {
         var sql = "SELECT f.user_id, f.user_name, f.user_photourl, vuh.user_tothours " +
-            "      FROM v_user_hours vuh JOIN (SELECT u.user_id, u.user_name " +
+            "      FROM v_user_hours vuh JOIN (SELECT u.user_id, u.user_name, u.user_photourl" +
             "                                  FROM fitmakerdb.friend f JOIN fitmakerdb.user u ON f.user_id_res = u.user_id " +
             "                                  WHERE user_id_req = ? AND state = 1 " +
             "                                  UNION ALL " +
-            "                                  SELECT u.user_id, u.user_name " +
+            "                                  SELECT u.user_id, u.user_name, u.user_photourl " +
             "                                  FROM fitmakerdb.friend f JOIN fitmakerdb.user u ON f.user_id_req = u.user_id " +
-            "                                  WHERE user_id_res = ? AND state = 1) f " +
-            "                            ON (vuh.user_id = f.user_id) " +
+            "                                  WHERE user_id_res = ? AND state = 1 " +
+            "                                  UNION ALL " +
+            "                                  SELECT user_id, user_name, user_photourl " +
+            "                                  FROM user " +
+            "                                  WHERE user_id = ?) f " +
+            "                                  ON (vuh.user_id = f.user_id) " +
             "      ORDER BY user_tothours DESC " +
             "      LIMIT 10 ";
 
         var user_id = req.user.id;
 
 
-        connection.query(sql, [user_id, user_id], function (err, results) {
+        connection.query(sql, [user_id, user_id, user_id], function (err, results) {
             console.log(results);
             connection.release();
             if (err) {
