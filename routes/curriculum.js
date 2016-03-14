@@ -1,3 +1,4 @@
+// 작성자 : 장한솔
 
 //curriculum
 var express = require('express');
@@ -42,8 +43,8 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
     // 큐레이션 결과
     function selectExerciseId(connection, callback){
         var sql = "SELECT exctype_id " +
-            "      FROM fitmakerdb.curation " +
-            "      WHERE curation_q1 = ? and curation_q3 = ? and curation_q6 = ? ";
+          "      FROM fitmakerdb.curation " +
+          "      WHERE curation_q1 = ? and curation_q3 = ? and curation_q6 = ? ";
 
         var q1 = req.query.q1;
         var q3 = req.query.q3;
@@ -65,8 +66,8 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
     // 운동타입 가져오기
     function selectExerciseType(exctype_id, connection, callback){
         var sql = "SELECT exctype_id, exctype_name, exctype_info, exctype_photourl " +
-            "      FROM fitmakerdb.exercisetype " +
-            "      WHERE exctype_id = ? ";
+          "      FROM fitmakerdb.exercisetype " +
+          "      WHERE exctype_id = ? ";
 
         connection.query(sql, [exctype_id], function(err, results){
 
@@ -92,10 +93,10 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
     function selectCurriculum(exctype, connection, callback){
         console.log(exctype);
         var sql = "SELECT  c.curri_id, c.curri_name, c.curri_photourl, c.curri_type, c.curri_info " +
-            "        FROM curriculum c join (SELECT  exctype_id, curri_id " +
-            "                                FROM exctype_curri " +
-            "                                WHERE exctype_id = ?) ec " +
-            "        on (c.curri_id = ec.curri_id) ";
+          "        FROM curriculum c join (SELECT  exctype_id, curri_id " +
+          "                                FROM exctype_curri " +
+          "                                WHERE exctype_id = ?) ec " +
+          "        on (c.curri_id = ec.curri_id) ";
 
 
         connection.query(sql, [exctype.exctype_id], function(err, results){
@@ -135,7 +136,7 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
     function selectAllCurriculum(connection, callback){
 
         var sql = "SELECT  curri_id, curri_name, curri_photourl, curri_type, curri_info " +
-            "      FROM curriculum  ";
+          "      FROM curriculum  ";
 
 
         connection.query(sql, function(err, results){
@@ -175,12 +176,12 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
     function selectContents(exctype, curriculum, connection, callback) {
         console.log(exctype);
         var sql = "SELECT v.curri_id, v.course_id, v.course_name, v.contents_id, v.contents_name, v.contents_target, v.contents_url " +
-            "      FROM v_curri_maincourse v JOIN (SELECT c.curri_id " +
-            "                                      FROM curriculum c join (SELECT  exctype_id, curri_id " +
-            "                                                              FROM exctype_curri " +
-            "                                                              WHERE exctype_id = ?) ec " +
-            "                                                        ON (c.curri_id = ec.curri_id)) ecc " +
-            "                                ON (v.curri_id = ecc.curri_id) ";
+          "      FROM v_curri_maincourse v JOIN (SELECT c.curri_id " +
+          "                                      FROM curriculum c join (SELECT  exctype_id, curri_id " +
+          "                                                              FROM exctype_curri " +
+          "                                                              WHERE exctype_id = ?) ec " +
+          "                                                        ON (c.curri_id = ec.curri_id)) ecc " +
+          "                                ON (v.curri_id = ecc.curri_id) ";
 
 
         connection.query(sql, [exctype.exctype_id], function (err, results) {
@@ -247,15 +248,17 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
 
 
     //큐레이션 유무 확인
+    var q1 = req.query.q1;
     if (!q1) {
         // 큐레이션값이 없을 때
         // exctype 유무 확인 : 있으면 해당 exctype과 추천 커리큘럼 출력
         //                    없으면 (9) 전체 커리큘럼 출력
         //var user_id = req.user.id;
         var exctypesql = "SELECT exctype_id " +
-            "             FROM fitmakerdb.user " +
-            "             WHERE user_id = ?";
+          "             FROM fitmakerdb.user " +
+          "             WHERE user_id = ?";
 
+        console.log(user_id);
         pool.getConnection(function(err, connection){
             if(err){
                 callback(err);
@@ -272,7 +275,7 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
                             function selectALLContents(curriculum, connection, callback) {
 
                                 var sql = "SELECT v.curri_id, c.curri_name, v.course_id, v.course_name, v.contents_id, v.contents_name, v.contents_target, v.contents_url " +
-                                    "      FROM v_curri_maincourse v JOIN curriculum c ON (v.curri_id = c.curri_id) ";
+                                  "      FROM v_curri_maincourse v JOIN curriculum c ON (v.curri_id = c.curri_id) ";
 
 
                                 connection.query(sql, function (err, results) {
@@ -403,8 +406,8 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
                 //타입 변경
                 function updateExctype(connection, callback) {
                     var sql = "UPDATE fitmakerdb.user " +
-                        "      SET exctype_id = ? " +
-                        "      WHERE user_id = ?";
+                      "      SET exctype_id = ? " +
+                      "      WHERE user_id = ?";
 
 
                     connection.query(sql, [result.exctype.exctype_id, user_id], function (err, result) {
@@ -441,16 +444,6 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
             }
         });
     }
-
-
-
-
-
-
-
-
-
-
 });
 
 module.exports = router;
