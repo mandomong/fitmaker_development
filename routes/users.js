@@ -436,14 +436,15 @@ router.route('/me')
                             "Bucket": s3Config.bucket,
                             "Key": s3Config.imageDir + "/" + filename
                         };
-                        s3.deleteObject(params, function (err, data) {
-                            if (err) {
-                                connection.release();
-                                console.log(err, err.stack);
-                            } else {
-                                callback(null, connection);
-                            }
-                        });
+
+                        //s3.deleteObject(params, function (err, data) {
+                        //    if (err) {
+                        //        connection.release();
+                        //        console.log(err, err.stack);
+                        //    } else {
+                        //        callback(null, connection);
+                        //    }
+                        //});
                     }
                 }
             });
