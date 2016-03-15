@@ -5,4 +5,5 @@ module.exports = {
   "bucket" : "fitmakerbucket",
   "imageDir" : "test",
   "imageACL" : "public-read",
+  "imageprofileDir" : "profile"
 };

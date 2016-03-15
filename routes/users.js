@@ -434,7 +434,7 @@ router.route('/me')
                         });
                         var params = {
                             "Bucket": s3Config.bucket,
-                            "Key": s3Config.imageDir + "/" + filename
+                            "Key": s3Config.imageprofileDir + "/" + filename
                         };
 
                         s3.deleteObject(params, function (err, data) {
@@ -468,7 +468,7 @@ router.route('/me')
                     "region": s3Config.region,
                     "params": {
                         "Bucket": s3Config.bucket,
-                        "Key": s3Config.imageDir + "/" + path.basename(file.path), // 목적지의 이름
+                        "Key": s3Config.imageprofileDir + "/" + path.basename(file.path), // 목적지의 이름
                         "ACL": s3Config.imageACL,
                         "ContentType": mimeType //mime.lookup
                     }
