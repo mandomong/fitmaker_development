@@ -4,6 +4,6 @@ module.exports = {
   "region" : "ap-northeast-2",
   "bucket" : "fitmakerbucket",
   "imageDir" : "test",
+  "imageprofileDir" : "profile",
   "imageACL" : "public-read",
-  "imageprofileDir" : "profile"
 };
