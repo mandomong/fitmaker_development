@@ -92,6 +92,7 @@ router.route('/:badge_id').get(isLoggedIn, function (req, res, next) {
             next(ERROR);
         } else {
             res.json({"result":result});
+
         }
     });
 

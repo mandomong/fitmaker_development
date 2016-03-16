@@ -437,6 +437,10 @@ router.route('/me')
                             "Key": s3Config.imageprofileDir + "/" + filename
                         };
 
+                        console.log('ddddddddddddd');
+                        console.log(s3);
+                        console.log(params);
+
                         s3.deleteObject(params, function (err, data) {
                             if (err) {
                                 connection.release();

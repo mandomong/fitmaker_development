@@ -283,7 +283,8 @@ module.exports = function(passport) {
 
 
         var registration_token = req.body.registration_token;
-        console.log(registration_token);
+        //console.log(registration_token);
+        console.log(profile);
 
         function getConnection(callback){
             pool.getConnection(function (err, connection){
