@@ -240,10 +240,20 @@ router.get('/:project_id', function (req, res, next) {
             if (err) {
                 callback(err);
             } else {
+                var check = results[0].playcheck > 0 ? true : false;
+                var position = results[0].seq;
+
+                if (check) {
+                    position = position - 1;
+                } else {
+                    if (!position) {
+                        position = 1;
+                    }
+                }
+
                 var today = {
-                    "position" : results[0].seq,
-                    "check" : results[0].playcheck > 0 ? true : false
-                };
+                    "position" : position,
+                    "check" : check                };
 
                 callback(null, courses, projects_ing, today);
 

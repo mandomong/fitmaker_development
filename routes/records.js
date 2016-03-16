@@ -64,11 +64,41 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
             if (err) {
                 callback(err);
             } else {
-                // 운동 총시간이 30분이상이면 1번 뱃지 발급
-                if (results[0].mytotaltime / 60 > 30) {
+                // 운동 총시간이 100분이상이면 1번 뱃지 발급
+                // 운동 총시간이 200분이상이면 2번 뱃지 발급
+                // 운동 총시간이 300분이상이면 3번 뱃지 발급
+                // 운동 총시간이 500분이상이면 4번 뱃지 발급
+                // 운동 총시간이 700분이상이면 5번 뱃지 발급
+                // 운동 총시간이 1000분이상이면 6번 뱃지 발급
+
+                if (results[0].mytotaltime / 60 >= 100 && results[0].mytotaltime / 60 < 200) {
+
                     callback(null, 1, connection);
+
+                } else if (results[0].mytotaltime / 60 >= 200 && results[0].mytotaltime / 60 < 300) {
+
+                    callback(null, 2, connection);
+
+                } else if (results[0].mytotaltime / 60 >= 300 && results[0].mytotaltime / 60 < 500) {
+
+                    callback(null, 3, connection);
+
+                } else if (results[0].mytotaltime / 60 >= 500 && results[0].mytotaltime / 60 < 700) {
+
+                    callback(null, 4, connection);
+
+                } else if (results[0].mytotaltime / 60 >= 700 && results[0].mytotaltime / 60 < 1000) {
+
+                    callback(null, 5, connection);
+
+                } else if (results[0].mytotaltime / 60 >= 1000 && results[0].mytotaltime / 60 < 1200) {
+
+                    callback(null, 6, connection);
+
                 } else {
+
                     callback(null, null, connection);
+
                 }
 
 
