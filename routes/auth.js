@@ -105,7 +105,7 @@ router.post('/facebook/token', function (req, res, next) {
 
                         };
                         next(ERROR);
-                        next(err);
+                        //next(err);
                     } else {
                         res.json(user);
                     }
