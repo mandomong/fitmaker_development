@@ -29,7 +29,7 @@ var resfriends = require('./routes/resfriends');
 var badges = require('./routes/badges');
 
 var app = express();
-app.set('env', 'development');
+app.set('env', 'production');
 
 
 // view engine setup
@@ -99,12 +99,14 @@ if (app.get('env') === 'development') {
 // no stacktraces leaked to user
 app.use(function(err, req, res, next) {
   res.status(err.status || 500);
+  var Logger = new winston.Logger(loggingconfig);
   Logger.log('warn', err.message);
 
-  res.json({
-    message: err.message,
-    error: {}
-  });
+  //res.json({
+  //  message: err.message,
+  //  error: {}
+  //});
+  res.json(err);
 });
 
 
