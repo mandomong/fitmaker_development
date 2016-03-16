@@ -10,7 +10,7 @@ function isLoggedIn2(req, res, next) {
 
     if (!req.isAuthenticated()) {
         var ERROR = {
-            "code": "E0004",
+            "code": "E0401",
             "message": "로그인 되어 있지않아 로그아웃에 실패하였습니다..."
         };
         next(ERROR);
