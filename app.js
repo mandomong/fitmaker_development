@@ -100,7 +100,8 @@ if (app.get('env') === 'development') {
 app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   var Logger = new winston.Logger(loggingconfig);
-  Logger.log('warn', err.message);
+
+  Logger.log('warn',err);
 
   //res.json({
   //  message: err.message,
