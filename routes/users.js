@@ -271,7 +271,7 @@ router.route('/me')
             }
 
             function selectProfile(connection, callback) {
-                var sql = "SELECT u.user_name, u.user_photourl, vub.badgecnt, vuh.user_tothours, et.exctype_name " +
+                var sql = "SELECT u.user_name, u.user_photourl, vub.badgecnt, vuh.user_tothours, et.exctype_name, u.exctype_id " +
                     "      FROM fitmakerdb.user u JOIN exercisetype et ON (et.exctype_id = u.exctype_id) " +
                     "                             LEFT JOIN v_user_hours vuh ON (u.user_id = vuh.user_id) " +
                     "                             LEFT JOIN v_user_badgecnt vub ON (vub.user_id = u.user_id) " +
@@ -289,7 +289,8 @@ router.route('/me')
                             "user_photourl": results[0].user_photourl,
                             "badgeCnt": results[0].badgeCnt,
                             "hours": results[0].user_tothours,
-                            "exctype_name": results[0].exctype_name
+                            "exctype_name": results[0].exctype_name,
+                            "exctype_id": results[0].exctype_id
                         };
                         callback(null, user, connection);
                     }
