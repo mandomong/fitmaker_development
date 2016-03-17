@@ -102,7 +102,7 @@ router.get('/:project_id', function (req, res, next) {
                       {
                           "course_seq": item.course_seq,
                           "course_id": item.course_id,
-                          "contents": [],
+                          "contents": []
                       }
                     );
                     //console.log(courses);
@@ -250,7 +250,8 @@ router.get('/:project_id', function (req, res, next) {
                     position = position - 1;
                 } else {
                     if (!position) {
-                        position = 1;
+                      //혜민이가 수정함 준태요청 프로젝트 처음시작시 default value = 0
+                        position = 0;
                     }
                 }
 

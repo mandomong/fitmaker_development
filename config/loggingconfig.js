@@ -30,7 +30,7 @@ var logging = {
     new winston.transports.Console({
       name: 'debugLogger',
       level: 'debug',
-      filename: path.join(__dirname,'../logging/app_daily.log'),
+      filename: path.join(__dirname,'../logging/app_daily_debug.log'),
       maxsize: 1024*1024
     })
 
