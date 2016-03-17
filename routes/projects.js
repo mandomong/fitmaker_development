@@ -247,11 +247,12 @@ router.get('/:project_id', function (req, res, next) {
                 var position = results[0].seq;
 
                 if (check) {
+                  // 주석 필요함
                     position = position - 1;
                 } else {
                     if (!position) {
                       //혜민이가 수정함 준태요청 프로젝트 처음시작시 default value = 0
-                        position = 0;
+                        position = 1;
                     }
                 }
 
