@@ -303,7 +303,7 @@ router.route('/me')
                     "      FROM fitmakerdb.project " +
                     "      WHERE user_id = ?";
 
-                connection.query(sql, [user_id], function (err, results) {
+                connection.query(sql, [user_id], function (err, results)  {
 
                     if (err) {
                         console.log("DB SELECT 에러...");
