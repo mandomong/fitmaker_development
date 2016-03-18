@@ -14,6 +14,8 @@ function getConnection(callback) {
     });
 }
 
+
+
 function isLoggedIn(req, res, next) {
 
     if (!req.isAuthenticated()) {
@@ -159,38 +161,72 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
     //뱃지 저장
     function insertBadge(badge_id, connection, callback) {
         if (badge_id === 7) {
-            callback(null, 7);
+
+            callback(null, 7, connection);
         } else {
 
             var sql = "INSERT INTO fitmakerdb.user_badge (user_id, badge_id, badge_date) " +
               "      VALUES (?, ?, sysdate()) ";
 
             connection.query(sql, [user_id, badge_id], function (err, result) {
-                connection.release(); //커넥션을 반납해야 한다.
 
                 if (err) {
+                    connection.release();
                     callback(err);
                 } else {
-                    callback(null, badge_id);
+                    callback(null, badge_id, connection);
                 }
             });
         }
     }
 
 
-    function makeJSON(badge_id, callback) {
+    function pushFriend(badge_id, connection, callback){
+        var sql = "select u.registration_token " +
+        "from user u join friend f on(u.user_id = f.user_id_res) " +
+        "where f.user_id_req = ? and f.state = 1";
+
+        connection.query(sql, [user_id], function(err, results){
+            connection.release();
+            if (err){
+                callback(err);
+            }else{
+                var regTokenArr = [];
+
+                if(results.length) {
+                    function iterator(item, callback) {
+                        regTokenArr.push(item.registration_token);
+                        callback(null);
+                    }
+
+                    async.each(results, iterator, function (err) {
+                        if (err) {
+                            callback(err);
+                        } else {
+                            callback(null, badge_id, regTokenArr);
+                        }
+                    });
+
+                }
+            }
+        });
+    }
+
+
+    function makeJSON(badge_id, regTokenArr, callback) {
 
 
         var result = {
             "message": "운동기록에 성공하였습니다",
-            "badge_id": badge_id
+            "badge_id": badge_id,
+            "regTokenArr": regTokenArr
         };
         callback(null, result);
 
-
     }
 
-    async.waterfall([getConnection, insertRecord, hoursBadge, checkBadges, insertBadge, makeJSON], function (err, result) {
+
+    async.waterfall([getConnection, insertRecord, hoursBadge, checkBadges, insertBadge, pushFriend, makeJSON], function (err, result) {
         if (err) {
             var ERROR = {
                 "error" : {
@@ -204,26 +240,52 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
 
             //push
 
-            //var message = new gcm.Message();
-            ////알림은 Noti
-            //message.addNotification("title", "mandoo");
-            //message.addNotification("body", "LOL let's play");
-            //message.addNotification("icon", "ic_launcher");
-            //var regTokens ="dnGt_RNzIr4:APA91bF7LljoeCYJhQ5QQbv6fS0OwCQRdRT2WJfYhfV-BeCjtEh-h5Lcai0PJhS16FBcus6jfGf6So5OJyauBpzFFYM7HRp6k1iJUJsmuamgkvAmSKr5XInYdAV-Jc-s49rFuZy5OzjB";
-            //
-            //
-            //var sender = new gcm.Sender('AIzaSyCu1ualuW7tJ4quKlL6RRyBVklvx7_1lj4');
-            //
-            //sender.send(message, regTokens, function(err) {
-            //    if (err) {
-            //        next(err);
-            //    } else {
-            //        res.json({"result":result});
-            //
-            //    }
-            //});
 
-            res.json({"result":result});
+
+            var message = new gcm.Message();
+            //알림은 Noti
+            message.addNotification("title", "mandoo");
+            message.addNotification("body", "LOL let's play");
+            message.addNotification("icon", "ic_launcher");
+
+            var regTokens = [];
+            //function iterator(item, callback){
+            //    regTokens.push(item.registration_token);
+            //    callback(null);
+            //}
+            //async.each(result.regTokenArr, iterator, function(err){
+            //   if(err){
+            //       next(err);
+            //   } else{
+            //
+            //   }
+            //});
+            //console.log('reg 토큰이다');
+            //console.log(regTokens);
+            regTokens = result.regTokenArr;
+
+
+
+            //var regToken ="dnGt_RNzIr4:APA91bF7LljoeCYJhQ5QQbv6fS0OwCQRdRT2WJfYhfV-BeCjtEh-h5Lcai0PJhS16FBcus6jfGf6So5OJyauBpzFFYM7HRp6k1iJUJsmuamgkvAmSKr5XInYdAV-Jc-s49rFuZy5OzjB";
+            var sender = new gcm.Sender('AIzaSyCu1ualuW7tJ4quKlL6RRyBVklvx7_1lj4');
+
+            if(regTokens.length) {
+
+
+                sender.send(message, regTokens, function (err) {
+                    if (err) {
+                        next(err);
+                    } else {
+                        console.log('됬을대');
+                        delete result.regTokenArr;
+                        res.json({"result": result});
+                    }
+                });
+            }else{
+                console.log('안됬을대');
+                delete result.regTokenArr;
+                res.json({"result": result});
+            }
 
         }
     });
