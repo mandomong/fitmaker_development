@@ -249,22 +249,7 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
             message.addNotification("icon", "ic_launcher");
 
             var regTokens = [];
-            //function iterator(item, callback){
-            //    regTokens.push(item.registration_token);
-            //    callback(null);
-            //}
-            //async.each(result.regTokenArr, iterator, function(err){
-            //   if(err){
-            //       next(err);
-            //   } else{
-            //
-            //   }
-            //});
-            //console.log('reg 토큰이다');
-            //console.log(regTokens);
             regTokens = result.regTokenArr;
-
-
 
             //var regToken ="dnGt_RNzIr4:APA91bF7LljoeCYJhQ5QQbv6fS0OwCQRdRT2WJfYhfV-BeCjtEh-h5Lcai0PJhS16FBcus6jfGf6So5OJyauBpzFFYM7HRp6k1iJUJsmuamgkvAmSKr5XInYdAV-Jc-s49rFuZy5OzjB";
             var sender = new gcm.Sender('AIzaSyCu1ualuW7tJ4quKlL6RRyBVklvx7_1lj4');
@@ -276,13 +261,11 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
                     if (err) {
                         next(err);
                     } else {
-                        console.log('됬을대');
                         delete result.regTokenArr;
                         res.json({"result": result});
                     }
                 });
             }else{
-                console.log('안됬을대');
                 delete result.regTokenArr;
                 res.json({"result": result});
             }
