@@ -57,6 +57,42 @@ secureServer.listen(httpsPort, function(){
 secureServer.on('error', onError);
 secureServer.on('listening', onListening);
 
+/* chat server */
+var io = require('socket.io')(server);
+var chatServer = io.of('/chat');
+var chatters = {};
+chatServer.on('connection', function(socket){
+  //지정하지 않으면 소켓 ID가 룸 이름이 된다.
+  console.log(socket.id);
+
+  var room;
+
+  //클라이언트가 룸에 들어올 때 발생하는 이벤트
+  socket.on('joinRoom', function(data){
+    room = data.room;
+    chatters[socket.id] = data.nickname;
+    socket.join(room, function(){
+      console.log(chatters[socket.id] + " : " + room + "에 입장하셨습니다...");
+    });
+  });
+  //클라이언트가 채팅 내용을 쓰고 '전송' 버튼을 누를 때 발생하는 이벤트
+  socket.on('chatInput', function(data){
+    console.log(data.message);
+    chatServer.to(room).emit('chatMessage',{"nickname" : chatters[socket.id], "message" : data.message})
+  });
+
+  //클라이언트가 룸을 나갈 때 발생하는 이벤트
+  socket.on('leaveRoom', function(data){
+    socket.leave(room, function(){
+      console.log(chatters[socket.id] + " : " + room + "에 입장하셨습니다...");
+      delete chatters[socket.id];
+    });
+  });
+
+
+});
+
+
 /**
  * Normalize a httpPort & httpsPort into a number, string, or false.
  */

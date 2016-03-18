@@ -40,7 +40,7 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
     //운동기록
     function insertRecord(connection, callback) {
         var sql = "INSERT INTO fitmakerdb.record (project_id, course_seq, playdate) " +
-            "      VALUES (?, ?, sysdate()) ";
+          "      VALUES (?, ?, sysdate()) ";
         var project_id = req.body.project_id;
         var course_seq = req.body.course_seq;
 
@@ -60,10 +60,10 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
 
         //운동시간 조회
         var sql = "SELECT sum(course_totaltime) as mytotaltime" +
-            "      FROM record r join project p on (r.project_id = p.project_id) " +
-            "                    join curri_course cc on (p.curri_id = cc.curri_id and r.course_seq = cc.course_seq) " +
-            "                    join course c on (c.course_id = cc.course_id) " +
-            "      WHERE p.user_id = ? ";
+          "      FROM record r join project p on (r.project_id = p.project_id) " +
+          "                    join curri_course cc on (p.curri_id = cc.curri_id and r.course_seq = cc.course_seq) " +
+          "                    join course c on (c.course_id = cc.course_id) " +
+          "      WHERE p.user_id = ? ";
 
         connection.query(sql, [user_id], function (err, results) {
 
@@ -104,7 +104,7 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
 
                 } else {
 
-                    callback(null, null, connection);
+                    callback(null, 7, connection);
 
                 }
 
@@ -118,8 +118,8 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
 
 
         var sql = "SELECT badge_id " +
-            "      FROM user_badge " +
-            "      WHERE user_id = ? ";
+          "      FROM user_badge " +
+          "      WHERE user_id = ? ";
 
 
         connection.query(sql, [user_id], function (err, results) {
@@ -127,6 +127,11 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
             if (err) {
                 callback(err);
             } else {
+
+                if (badge_id === 7) {
+                    callback(null, 7, connection);
+                }
+
                 var mybadges = [];
 
                 function iterator(item, callback) {
@@ -142,7 +147,7 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
                         if (mybadges.indexOf(badge_id) === -1) {
                             callback(null, badge_id, connection);
                         } else {
-                            callback(null, null, connection);
+                            callback(null, 7, connection);
                         }
                     }
                 });
@@ -153,12 +158,12 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
 
     //뱃지 저장
     function insertBadge(badge_id, connection, callback) {
-        if (!badge_id) {
-            callback(null, null);
+        if (badge_id === 7) {
+            callback(null, 7);
         } else {
 
             var sql = "INSERT INTO fitmakerdb.user_badge (user_id, badge_id, badge_date) " +
-                "      VALUES (?, ?, sysdate()) ";
+              "      VALUES (?, ?, sysdate()) ";
 
             connection.query(sql, [user_id, badge_id], function (err, result) {
                 connection.release(); //커넥션을 반납해야 한다.

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Socket.IO Test</title>
+    <script src="/socket.io/socket.io.js"></script><!--클라이언트가 이거 만나면 서버에게 이거 받으려고 요청한다. 받아서 파싱하고... 아래 socket으로... -->
+    <script>
+        //var socket = io.connect('http://localhost/chat'); //socket.io 연결 후에는 http가 ws로 바뀐다.
+        var socket = io.connect('/chat'); // 서버 쪽의 chat 네임스페이스와 연결. 위 주석처럼 localhost를 붙여 써도 되고...
+        socket.on('connect', function() {
+            //클라이언트 쪽에서 발생하는 이벤트는 connect
+            // 서버 쪽 이벤트는 connection
+            console.log("채팅 서버에 연결되었습니다...");
+        });
+        socket.on('chatMessage', function(data){
+            var chatMessages = document.querySelector("#chatMessages");
+            var newNode = document.createElement("div"); //새로운 div를 생성한다.
+            var newTextNode = document.createTextNode(data.nickname + " : " + data.message); //새로운 텍스트 자식 생성
+            newNode.appendChild(newTextNode); // <div>텍스트</div>...
+            chatMessages.appendChild(newNode); // chatMessages에 추가
+        });
+    </script>
+</head>
+<body>
+<div>
+    <label for="txtNickname">닉네임 : </label>
+    <input type="text" id="txtNickname">
+    <button id="btnJoin">입장하기</button>
+    <button id="btnLeave">퇴장하기</button>
+</div>
+<div>
+    <input type="text" id="txtMessage"><button id="btnSend">보내기</button>
+</div>
+<div id="chatMessages">
+    <div>메시지</div>
+</div>
+<script>
+    var btnJoin = document.querySelector("#btnJoin"); //document : html이 그려지는 영역
+    //#btnJoin : css selector. #이면 아이템, .이면 클래스, btnJoin test면 btnJoin의 자식(test)
+    var btnLeave = document.querySelector("#btnLeave");
+    var txtMessage = document.querySelector("#txtMessage");
+    var txtNickname = document.querySelector("#txtNickname");
+    var btnSend = document.querySelector("#btnSend");
+    btnJoin.addEventListener("click", function(event){
+        socket.emit('joinRoom', {"room" : "1234", "nickname" : txtNickname.value}); // 이 이벤트로 룸 이름이 1234가 된다.
+    });
+    btnLeave.addEventListener("click", function(event){
+        socket.emit('leaveRoom');
+    });
+    btnSend.addEventListener("click", function(event){
+        socket.emit('chatInput', {"message" : txtMessage.value});
+        txtMessage.value = ""; // 전송하기 버튼을 눌러 전송한 후 입력 창(txtMessage)의 내용을 비워야 한다.
+    });
+    txtMessage.addEventListener("keypress", function(event){
+        if(event.keyCode === 13){ //13은 Enter를 의미한다. Enter를 치면 실행된다...
+            socket.emit('chatInput', {"message" : txtMessage.value});
+            txtMessage.value = ""; // 전송하기 버튼을 눌러 전송한 후 입력 창(txtMessage)의 내용을 비워야 한다.
+        }
+    });
+</script>
+</body>
+</html>
