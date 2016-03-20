@@ -48,6 +48,11 @@
     var txtMessage = document.querySelector("#txtMessage");
     var txtNickname = document.querySelector("#txtNickname");
     var btnSend = document.querySelector("#btnSend");
+
+    socket.emit('joinRoom', {"room" : "1234", "nickname" : txtNickname.value}); // 이 이벤트로 룸 이름이 1234가 된다.
+    socket.emit('chatInput', {"message" : txtMessage.value});
+    txtMessage.value = ""; // 전송하기 버튼을 눌러 전송한 후 입력 창(txtMessage)의 내용을 비워야 한다.
+
     btnJoin.addEventListener("click", function(event){
         socket.emit('joinRoom', {"room" : "1234", "nickname" : txtNickname.value}); // 이 이벤트로 룸 이름이 1234가 된다.
     });
@@ -60,9 +65,6 @@
     });
     txtMessage.addEventListener("keypress", function(event){
         if(event.keyCode === 13){ //13은 Enter를 의미한다. Enter를 치면 실행된다...
-            socket.emit('joinRoom', {"room" : "1234", "nickname" : "사용자"});
-            socket.emit('chatInput', {"message" : txtMessage.value});
-            socket.emit('chatInput', {"message" : txtMessage.value});
             txtMessage.value = ""; // 전송하기 버튼을 눌러 전송한 후 입력 창(txtMessage)의 내용을 비워야 한다.
         }
     });
