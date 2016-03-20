@@ -335,7 +335,7 @@ router.get('/:project_id/video', function(req, res, next) {
       "      FROM (SELECT p.project_id, p.project_name, cc.curri_id, cs.course_id, cs.course_name " +
       "            FROM project p JOIN curri_course cc ON (p.curri_id = cc.curri_id) " +
       "                           JOIN course cs ON (cc.course_id = cs.course_id) " +
-      "            GROUP BY cs.course_id " +
+      "            GROUP BY p.project_id, cs.course_id " +
       "            HAVING p.project_id = ?) pc JOIN course_contents csc ON (pc.course_id = csc.course_id) " +
       "                                        JOIN contents cont ON (cont.contents_id = csc.contents_id) " +
       "      ORDER BY pc.course_id, csc.contents_seq ";
