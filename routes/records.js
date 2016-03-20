@@ -50,6 +50,7 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
 
             //console.log(result);
             if (err) {
+                connection.release();
                 callback(err);
             } else {
                 callback(null, connection);
@@ -71,6 +72,7 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
 
             //console.log(results);
             if (err) {
+                connection.release();
                 callback(err);
             } else {
                 // 운동 총시간이 100분이상이면 1번 뱃지 발급
@@ -127,6 +129,7 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
         connection.query(sql, [user_id], function (err, results) {
 
             if (err) {
+                connection.release();
                 callback(err);
             } else {
 
@@ -143,6 +146,7 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
 
                 async.each(results, iterator, function (err) {
                     if (err) {
+                        connection.release();
                         callback(err);
                     } else {
 
