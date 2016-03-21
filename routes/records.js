@@ -211,6 +211,8 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
                         }
                     });
 
+                } else {
+                    callback(null, badge_id, regTokenArr);
                 }
             }
         });
