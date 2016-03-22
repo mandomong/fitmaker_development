@@ -186,11 +186,15 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
 
 
     function pushFriend(badge_id, connection, callback){
-        var sql = "select u.registration_token " +
+        var sql = "select u.user_name, u.registration_token " +
         "from user u join friend f on(u.user_id = f.user_id_res) " +
-        "where f.user_id_req = ? and f.state = 1";
+        "where f.user_id_req = ? and f.state = 1 " +
+        "union all " +
+        "select u.user_name, u.registration_token " +
+        "from user u join friend f on(u.user_id = f.user_id_req) " +
+        "where f.user_id_res = ? and f.state = 1";
 
-        connection.query(sql, [user_id], function(err, results){
+        connection.query(sql, [user_id, user_id], function(err, results){
             connection.release();
             if (err){
                 callback(err);
@@ -273,8 +277,11 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
             if(regTokens.length) {
                 sender.send(message, regTokens, function (err) {
                     if (err) {
+                        console.log("에러",err);
                         next(err);
                     } else {
+                        console.log("성공");
+                        console.log(regTokens);
                         delete result.regTokenArr;
                         res.json({"result": result});
                     }
