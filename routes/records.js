@@ -250,19 +250,31 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
 
             var message = new gcm.Message();
             //알림은 Noti
+
+            //사용자
             message.addNotification("title", "mandoo");
+            //내용 ex) ~~님이 운동을 완료하였습니다
             message.addNotification("body", "LOL let's play");
             message.addNotification("icon", "ic_launcher");
 
-            var regTokens = [];
-            regTokens = result.regTokenArr;
+            //var regTokens = [];
+            //regTokens = result.regTokenArr;
 
+            //한솔 토큰
             //var regToken ="dnGt_RNzIr4:APA91bF7LljoeCYJhQ5QQbv6fS0OwCQRdRT2WJfYhfV-BeCjtEh-h5Lcai0PJhS16FBcus6jfGf6So5OJyauBpzFFYM7HRp6k1iJUJsmuamgkvAmSKr5XInYdAV-Jc-s49rFuZy5OzjB";
+            //준태 토큰
+            var regToken = "eLi_NL0z3zs:APA91bFNBi5owAYiWiXoOYsFSe-0ns-i7xcAN1gTSbpStUI9WITu9nxmmNcW2pb8-tDdMwirugabWgY7F2oCW2lNeT2E8fIYDIe8neww92lHY6Qcb8y5E64EuUWfKECUW_mDxlFu-gvZ";
+
+            //내 gcm
             //var sender = new gcm.Sender('AIzaSyCu1ualuW7tJ4quKlL6RRyBVklvx7_1lj4');
+
+            //준태gcm
             var sender = new gcm.Sender('AIzaSyD9cBFNuRFTZDPlKHNQK27iYT4An27LIZg');
 
+            var regTokens = ["dnGt_RNzIr4:APA91bF7LljoeCYJhQ5QQbv6fS0OwCQRdRT2WJfYhfV-BeCjtEh-h5Lcai0PJhS16FBcus6jfGf6So5OJyauBpzFFYM7HRp6k1iJUJsmuamgkvAmSKr5XInYdAV-Jc-s49rFuZy5OzjB","eLi_NL0z3zs:APA91bFNBi5owAYiWiXoOYsFSe-0ns-i7xcAN1gTSbpStUI9WITu9nxmmNcW2pb8-tDdMwirugabWgY7F2oCW2lNeT2E8fIYDIe8neww92lHY6Qcb8y5E64EuUWfKECUW_mDxlFu-gvZ"];
 
             if(regTokens.length) {
+                console.log('들어옴');
 
 
                 sender.send(message, regTokens, function (err) {
