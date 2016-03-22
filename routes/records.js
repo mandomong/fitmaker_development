@@ -258,7 +258,9 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
             regTokens = result.regTokenArr;
 
             //var regToken ="dnGt_RNzIr4:APA91bF7LljoeCYJhQ5QQbv6fS0OwCQRdRT2WJfYhfV-BeCjtEh-h5Lcai0PJhS16FBcus6jfGf6So5OJyauBpzFFYM7HRp6k1iJUJsmuamgkvAmSKr5XInYdAV-Jc-s49rFuZy5OzjB";
-            var sender = new gcm.Sender('AIzaSyCu1ualuW7tJ4quKlL6RRyBVklvx7_1lj4');
+            //var sender = new gcm.Sender('AIzaSyCu1ualuW7tJ4quKlL6RRyBVklvx7_1lj4');
+            var sender = new gcm.Sender('AIzaSyD9cBFNuRFTZDPlKHNQK27iYT4An27LIZg');
+
 
             if(regTokens.length) {
 
