@@ -248,9 +248,11 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
             var message = new gcm.Message();
 
             //사용자
-            message.addNotification("title", "mandoo");
+            message.addNotification("title", "FITMAKER");
             //내용 ex) ~~님이 운동을 완료하였습니다
-            message.addNotification("body", "LOL let's play");
+            var name = "김혜민";
+            var parser = name + "님이 오늘의 운동을 완료하였습니다!";
+            message.addNotification("body", parser);
             message.addNotification("icon", "ic_launcher");
 
             var regTokens = [];
