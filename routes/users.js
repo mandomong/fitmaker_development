@@ -80,7 +80,7 @@ router.route('/')
                         callback(null);
                     }
 
-                    async.each(results, iterator, function (err) {
+                    async.eachSeries(results, iterator, function (err) {
                         if (err) {
                             callback(err);
                         } else {
@@ -322,7 +322,7 @@ router.route('/me')
                             callback(null);
                         }
 
-                        async.each(results, iterator, function (err) {
+                        async.eachSeries(results, iterator, function (err) {
                             if (err) {
                                 callback(err);
                             } else {
@@ -357,7 +357,7 @@ router.route('/me')
                             callback(null);
                         }
 
-                        async.each(results, iterator, function (err) {
+                        async.eachSeries(results, iterator, function (err) {
                             if (err) {
                                 callback(err);
                             } else {

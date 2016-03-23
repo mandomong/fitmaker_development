@@ -109,7 +109,7 @@ router.get('/:project_id', function (req, res, next) {
           callback(null);
         }
 
-        async.each(results, iterator, function (err) {
+        async.eachSeries(results, iterator, function (err) {
           if (err) {
             callback(err);
           } else {
@@ -171,7 +171,7 @@ router.get('/:project_id', function (req, res, next) {
           callback(null);
         }
 
-        async.each(results, iterator, function (err) {
+          async.eachSeries(results, iterator, function (err) {
           if (err) {
             callback(err);
           } else {
@@ -214,7 +214,7 @@ router.get('/:project_id', function (req, res, next) {
           callback(null);
         }
 
-        async.each(results, iterator, function (err) {
+          async.eachSeries(results, iterator, function (err) {
           if (err) {
             callback(err);
           } else {
@@ -363,7 +363,7 @@ router.get('/:project_id/video', function(req, res, next) {
           callback(null);
         }
 
-        async.each(results, iterator, function (err) {
+          async.eachSeries(results, iterator, function (err) {
           if (err) {
             callback(err);
           } else {

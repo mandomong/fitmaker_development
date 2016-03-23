@@ -47,6 +47,7 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
         var project_id = req.body.project_id;
         var course_seq = req.body.course_seq;
 
+
         connection.query(sql, [project_id, course_seq], function (err, result) {
 
             //console.log(result);
@@ -198,10 +199,10 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
 
         connection.query(sql, [user_id, user_id], function(err, results){
 
-
+            connection.release();
 
             if (err){
-                connection.release();
+
                 callback(err);
             }else{
                 var regTokenArr = [];

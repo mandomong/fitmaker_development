@@ -75,7 +75,7 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
                     callback(null);
                 }
 
-                async.each(results, iterator, function (err) {
+                async.eachSeries(results, iterator, function (err) {
                     if (err) {
                         callback(err);
                     } else {
