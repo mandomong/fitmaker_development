@@ -230,7 +230,14 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
     function sendPush(badge_id, regTokenArr, callback){
 
         //var name = "김혜민";
-        var name = req.user.name || req.user.facebookName;
+        var name = req.user.name;
+        if (!name) {
+            name = req.user.facebookName;
+            if(!name){
+                name = "친구";
+            }
+        }
+
         var parser = name + "님이 오늘의 운동을 완료하였습니다!";
 
         //push
