@@ -192,7 +192,7 @@ router.get('/:project_id', function (req, res, next) {
       "        FROM fitmakerdb.project " +
       "        WHERE project_enddate > date(date_format(CONVERT_TZ(now(), '+00:00', '+9:00'), '%Y-%m-%d %H-%i-%s')) " +
       "        AND user_id = ? " +
-      "        ORDER BY project_id";
+      "        ORDER BY project_id desc";
 
 
     connection.query(sql, [user_id], function (err, results) {
