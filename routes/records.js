@@ -300,8 +300,9 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
             next(ERROR);
         } else {
             /* url 쪽으로 데이터를 가지고 이동 */
+            console.log('여기로 빠짐');
             console.log(result);
-            res.json(result);
+            res.json({"result":result});
         }
     });
 
