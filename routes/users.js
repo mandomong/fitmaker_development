@@ -289,7 +289,7 @@ router.route('/me')
                         var user = {
                             "user_name": results[0].user_name,
                             "user_photourl": results[0].user_photourl,
-                            "badgeCnt": results[0].badgeCnt,
+                            "badgeCnt": results[0].badgecnt,
                             "hours": results[0].user_tothours,
                             "exctype_name": results[0].exctype_name,
                             "exctype_id": results[0].exctype_id
