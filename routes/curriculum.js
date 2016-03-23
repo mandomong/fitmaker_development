@@ -37,7 +37,7 @@ function isLoggedIn(req, res, next){
 
 // --- 13. 운동타입 및 커리큘럼 추천 --- //
 
-// - 쿼리 스트링에 q1, q3, q6 (큐레이션) 값이 있다면 : 큐레이샨 결과인 exctype과 추천 커리큘럼 출력
+// - 쿼리 스트링에 q1, q4, q6 (큐레이션) 값이 있다면 : 큐레이샨 결과인 exctype과 추천 커리큘럼 출력
 // - 큐레이션을 할때 마다 자신의 exctype변경
 // - 쿼리스트링이 없을 경우 session에 user_id 정보를 이용하여 exctype의 유무를 확인
 // - exctype 이 존재할 경우 : exctype과 추천커리큘럼 출력
@@ -51,17 +51,21 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
     function selectExerciseId(connection, callback){
         var sql = "SELECT exctype_id " +
           "      FROM fitmakerdb.curation " +
-          "      WHERE curation_q1 = ? and curation_q3 = ? and curation_q6 = ? ";
+          "      WHERE curation_q1 = ? and curation_q4 = ? and curation_q6 = ? ";
 
         var q1 = req.query.q1;
-        var q3 = req.query.q3;
+        var q4 = req.query.q4;
         var q6 = req.query.q6;
+        if (!q6) {
+            q6 = 0;
+        }
 
 
-        console.log("q1,q3,q6");
-        console.log(q1,q3,q6);
 
-        connection.query(sql, [q1, q3, q6], function(err, results){
+        console.log("q1,q4,q6");
+        console.log(q1,q4,q6);
+
+        connection.query(sql, [q1, q4, q6], function(err, results){
 
             if(err){
                 callback(err);
