@@ -258,6 +258,8 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
 
     //큐레이션 유무 확인
     var q1 = req.query.q1;
+    console.log("q1,q4,q6");
+    console.log(q1);
     if (!q1) {
         // 큐레이션값이 없을 때
         // exctype 유무 확인 : 있으면 해당 exctype과 추천 커리큘럼 출력
