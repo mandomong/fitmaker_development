@@ -248,19 +248,25 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
         } else {
             /* url 쪽으로 데이터를 가지고 이동 */
 
+
+            var name = "김혜민";
+            var parser = name + "님이 오늘의 운동을 완료하였습니다!";
+
             //push
             var message = new gcm.Message({
                 collapseKey: 'demo',
                 delayWhileIdle: true,
-                timeToLive: 3
+                timeToLive: 3,
+                data: {
+                    "key1" : parser
+                }
             });
 
             //사용자
             message.addNotification("title", "FITMAKER");
             //내용 ex) ~~님이 운동을 완료하였습니다
-            var name = "김혜민";
-            var parser = name + "님이 오늘의 운동을 완료하였습니다!";
-            message.addNotification("body", parser);
+
+            //message.addNotification("body", parser);
             message.addNotification("icon", "fit_logo");
 
             var regTokens = [];

@@ -25,10 +25,10 @@ router.post('/', function (req, res, next) {
   // Project table insert
   function insertProject(connection, callback) {
     var sql = "INSERT INTO project(project_name, project_startdate, project_enddate, user_id, curri_id) " +
-      "VALUES ((SELECT curri_name " +
-      "FROM curriculum " +
-      "WHERE curri_id = ?), " +
-      "sysdate(), date_add(sysdate(), interval 28 day), ?, ?) ";
+      "        VALUES ((SELECT curri_name " +
+      "        FROM curriculum " +
+      "        WHERE curri_id = ?), " +
+      "              sysdate(), date_add(sysdate(), interval 28 day), ?, ?) ";
     var curri_id = req.body.curri_id;
 
 
@@ -191,7 +191,8 @@ router.get('/:project_id', function (req, res, next) {
     var sql = "SELECT project_id, project_name " +
       "        FROM fitmakerdb.project " +
       "        WHERE project_enddate > date(date_format(CONVERT_TZ(now(), '+00:00', '+9:00'), '%Y-%m-%d %H-%i-%s')) " +
-      "        AND user_id = ?";
+      "        AND user_id = ? " +
+      "        ORDER BY project_id";
 
 
     connection.query(sql, [user_id], function (err, results) {
