@@ -60,8 +60,6 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
             q6 = 0;
         }
 
-
-
         console.log("q1,q4,q6");
         console.log(q1,q4,q6);
 
@@ -449,8 +447,8 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
                 });
 
                 //출력
-                console.log("q1,q3,q6");
-                console.log(q1,q3,q6);
+                console.log("q1,q4,q6");
+                console.log(q1,q4,q6);
                 res.json({"result":result});
 
             }
