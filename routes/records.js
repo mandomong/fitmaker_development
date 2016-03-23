@@ -38,6 +38,7 @@ function isLoggedIn(req, res, next) {
 router.route('/').post(isLoggedIn, function (req, res, next) {
 
     var user_id = req.user.id;
+    var user_name = req.user.name;
 
     //운동기록
     function insertRecord(connection, callback) {
@@ -228,7 +229,8 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
 
     function sendPush(badge_id, regTokenArr, callback){
 
-        var name = "김혜민";
+        //var name = "김혜민";
+        var name = req.user.name || req.user.facebookName;
         var parser = name + "님이 오늘의 운동을 완료하였습니다!";
 
         //push

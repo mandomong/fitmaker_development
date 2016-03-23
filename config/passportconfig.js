@@ -95,6 +95,7 @@ module.exports = function(passport) {
                                     var user = {
                                         //"result":"로그인이 정상적으로 처리되었습니다",
                                         "id": results[0].user_id,
+                                        "name": results[0].user_name,
                                         "hashPassword": results[0].password
                                     };
                                     console.log(user.id + "번 회원이 로그인 하였습니다...");
@@ -119,6 +120,7 @@ module.exports = function(passport) {
                                         var user = {
                                             //"result":"로그인이 정상적으로 처리되었습니다",
                                             "id": results[0].user_id,
+                                            "name": results[0].user_name,
                                             "hashPassword": results[0].password,
                                         };
                                         console.log(user.id + "번 회원이 로그인 하였습니다...");
@@ -130,6 +132,7 @@ module.exports = function(passport) {
                                 var user = {
                                     //"result":"로그인이 정상적으로 처리되었습니다",
                                     "id": results[0].user_id,
+                                    "name": results[0].user_name,
                                     "hashPassword": results[0].password
                                 };
                                 console.log(user.id + "번 회원이 로그인 하였습니다...");
