@@ -230,7 +230,7 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
     function sendPush(badge_id, regTokenArr, callback){
 
         //var name = "김혜민";
-        var name = req.user.name;
+        var name = req.user.username;
         if (!name) {
             name = req.user.facebookName;
             if(!name){
