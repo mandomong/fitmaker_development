@@ -144,7 +144,7 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
                     callback(null);
                 }
 
-                async.each(results, iterator, function (err) {
+                async.eachSeries(results, iterator, function (err) {
                     if (err) {
                         connection.release();
                         callback(err);
@@ -179,7 +179,6 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
 
                     callback(err);
                 } else {
-                    console.log("**");
                     callback(null, badge_id, connection);
                 }
             });
@@ -198,10 +197,9 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
 
         connection.query(sql, [user_id, user_id], function(err, results){
 
-
+            connection.release();
 
             if (err){
-                connection.release();
                 callback(err);
             }else{
                 var regTokenArr = [];
@@ -212,7 +210,7 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
                         callback(null);
                     }
 
-                    async.each(results, iterator, function (err) {
+                    async.eachSeries(results, iterator, function (err) {
                         if (err) {
                             callback(err);
                         } else {
@@ -221,6 +219,7 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
                     });
 
                 } else {
+
                     callback(null, badge_id, regTokenArr);
                 }
             }
@@ -263,10 +262,8 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
         if(regTokens.length) {
             sender.send(message, regTokens, function (err) {
                 if (err) {
-                    console.log("GCM ERROR" , err);
                     callback(err);
                 } else {
-                    console.log("GCM SUCCESS");
                     callback(null, badge_id)
                 }
             });
@@ -300,8 +297,6 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
             next(ERROR);
         } else {
             /* url 쪽으로 데이터를 가지고 이동 */
-            console.log('여기로 빠짐');
-            console.log(result);
             res.json({"result":result});
         }
     });
