@@ -57,6 +57,7 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
         var q3 = req.query.q3;
         var q6 = req.query.q6;
 
+        //qqqqqqqqqqqqqqq
         console.log("q1,q3,q6");
         console.log(q1,q3,q6);
 
