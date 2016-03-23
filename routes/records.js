@@ -42,7 +42,7 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
     //운동기록
     function insertRecord(connection, callback) {
         var sql = "INSERT INTO fitmakerdb.record (project_id, course_seq, playdate) " +
-          "      VALUES (?, ?, sysdate()) ";
+          "       VALUES (?, ?, sysdate()) ";
         var project_id = req.body.project_id;
         var course_seq = req.body.course_seq;
 
@@ -176,8 +176,10 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
 
                 if (err) {
                     connection.release();
+
                     callback(err);
                 } else {
+                    console.log("**");
                     callback(null, badge_id, connection);
                 }
             });
@@ -195,8 +197,11 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
         "where f.user_id_res = ? and f.state = 1";
 
         connection.query(sql, [user_id, user_id], function(err, results){
-            connection.release();
+
+
+
             if (err){
+                connection.release();
                 callback(err);
             }else{
                 var regTokenArr = [];
@@ -222,21 +227,69 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
         });
     }
 
+    function sendPush(badge_id, regTokenArr, callback){
 
-    function makeJSON(badge_id, regTokenArr, callback) {
+        var name = "김혜민";
+        var parser = name + "님이 오늘의 운동을 완료하였습니다!";
+
+        //push
+        var message = new gcm.Message({
+            collapseKey: 'demo',
+            delayWhileIdle: true,
+            timeToLive: 3,
+            data: {
+                "key1" : parser
+            }
+        });
+
+        //사용자
+        message.addNotification("title", "FITMAKER");
+        //내용 ex) ~~님이 운동을 완료하였습니다
+
+        //message.addNotification("body", parser);
+        message.addNotification("icon", "fit_logo");
+
+        var regTokens = [];
+        regTokens = regTokenArr;
+
+        //내 gcm
+        //var sender = new gcm.Sender('AIzaSyCu1ualuW7tJ4quKlL6RRyBVklvx7_1lj4');
+
+        //준태gcm
+        var sender = new gcm.Sender('AIzaSyD9cBFNuRFTZDPlKHNQK27iYT4An27LIZg');
+
+        //var regTokens = ["eLi_NL0z3zs:APA91bFNBi5owAYiWiXoOYsFSe-0ns-i7xcAN1gTSbpStUI9WITu9nxmmNcW2pb8-tDdMwirugabWgY7F2oCW2lNeT2E8fIYDIe8neww92lHY6Qcb8y5E64EuUWfKECUW_mDxlFu-gvZ","d9Hy9FCEzVU:APA91bFxKvIz2ugi7vW-fa7fmKci8zIwp6SQyI3W4xhPDTIYgxgRIdbz2Z7Wh9HqYTVNCTwzGlNGRHDLNMuOwGWDOWPSe1JqfvCGbc4RA2wzO8bLRbOWmHovFU9VNkXRStzQRAmZZOD2"];
+
+        if(regTokens.length) {
+            sender.send(message, regTokens, function (err) {
+                if (err) {
+                    console.log("GCM ERROR" , err);
+                    callback(err);
+                } else {
+                    console.log("GCM SUCCESS");
+                    callback(null, badge_id)
+                }
+            });
+        }else{
+            callback(null, badge_id);
+        }
+
+    }
+
+
+    function makeJSON(badge_id, callback) {
 
 
         var result = {
             "message": "운동기록에 성공하였습니다",
-            "badge_id": badge_id,
-            "regTokenArr": regTokenArr
+            "badge_id": badge_id
         };
         callback(null, result);
 
     }
 
 
-    async.waterfall([getConnection, insertRecord, hoursBadge, checkBadges, insertBadge, pushFriend, makeJSON], function (err, result) {
+    async.waterfall([getConnection, insertRecord, hoursBadge, checkBadges, insertBadge, pushFriend, sendPush, makeJSON], function (err, result) {
         if (err) {
             var ERROR = {
                 "error" : {
@@ -247,56 +300,8 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
             next(ERROR);
         } else {
             /* url 쪽으로 데이터를 가지고 이동 */
-
-
-            var name = "김혜민";
-            var parser = name + "님이 오늘의 운동을 완료하였습니다!";
-
-            //push
-            var message = new gcm.Message({
-                collapseKey: 'demo',
-                delayWhileIdle: true,
-                timeToLive: 3,
-                data: {
-                    "key1" : parser
-                }
-            });
-
-            //사용자
-            message.addNotification("title", "FITMAKER");
-            //내용 ex) ~~님이 운동을 완료하였습니다
-
-            //message.addNotification("body", parser);
-            message.addNotification("icon", "fit_logo");
-
-            var regTokens = [];
-            regTokens = result.regTokenArr;
-
-            //내 gcm
-            //var sender = new gcm.Sender('AIzaSyCu1ualuW7tJ4quKlL6RRyBVklvx7_1lj4');
-
-            //준태gcm
-            var sender = new gcm.Sender('AIzaSyD9cBFNuRFTZDPlKHNQK27iYT4An27LIZg');
-
-            //var regTokens = ["eLi_NL0z3zs:APA91bFNBi5owAYiWiXoOYsFSe-0ns-i7xcAN1gTSbpStUI9WITu9nxmmNcW2pb8-tDdMwirugabWgY7F2oCW2lNeT2E8fIYDIe8neww92lHY6Qcb8y5E64EuUWfKECUW_mDxlFu-gvZ","d9Hy9FCEzVU:APA91bFxKvIz2ugi7vW-fa7fmKci8zIwp6SQyI3W4xhPDTIYgxgRIdbz2Z7Wh9HqYTVNCTwzGlNGRHDLNMuOwGWDOWPSe1JqfvCGbc4RA2wzO8bLRbOWmHovFU9VNkXRStzQRAmZZOD2"];
-
-            if(regTokens.length) {
-                sender.send(message, regTokens, function (err) {
-                    if (err) {
-                        console.log("에러",err);
-                        next(err);
-                    } else {
-                        console.log("성공");
-                        console.log(regTokens);
-                        delete result.regTokenArr;
-                        res.json({"result": result});
-                    }
-                });
-            }else{
-                delete result.regTokenArr;
-                res.json({"result": result});
-            }
-
+            console.log(result);
+            res.json(result);
         }
     });
 

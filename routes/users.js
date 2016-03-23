@@ -277,7 +277,9 @@ router.route('/me')
                     "                             LEFT JOIN v_user_badgecnt vub ON (vub.user_id = u.user_id) " +
                     "      WHERE u.user_id = ?";
 
+
                 connection.query(sql, [user_id], function (err, results) {
+
 
                     if (err) {
                         console.log("DB SELECT 에러...");
