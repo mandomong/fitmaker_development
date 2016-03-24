@@ -211,9 +211,6 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
 
                     var idx = item.i;
 
-                    console.log("curriculum[idx].curri_id , item.curri_id");
-                    console.log(curriculum[idx].curri_id, item.curri_id);
-
 
                     curriculum[idx].contents.push({
                         "contents_id": item.contents_id,
