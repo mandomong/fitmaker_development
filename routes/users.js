@@ -123,6 +123,8 @@ router.post('/', function (req, res, next) {
 
     if (req.secure) {
 
+        console.log("**********");
+
         var username = req.body.user_name;
         var password = req.body.password;
         var email = req.body.email;
