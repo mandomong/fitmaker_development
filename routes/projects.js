@@ -332,7 +332,7 @@ router.get('/:project_id/video', function(req, res, next) {
 
   //컨텐츠 동영상 가져오기
   function selectContentsVideo(curriculum, connection, callback) {
-    var sql = "SELECT pc.project_id, pc.curri_id, pc.project_name, pc.course_id, cont.contents_id, cont.contents_name, cont.thumbnail_url, cont.contents_url " +
+    var sql = "SELECT pc.project_id, pc.curri_id, pc.project_name, pc.course_id, cont.contents_id, cont.contents_name, cont.contents_target, cont.thumbnail_url, cont.contents_url " +
       "      FROM (SELECT p.project_id, p.project_name, cc.curri_id, cs.course_id, cs.course_name " +
       "            FROM project p JOIN curri_course cc ON (p.curri_id = cc.curri_id) " +
       "                           JOIN course cs ON (cc.course_id = cs.course_id) " +
@@ -354,7 +354,7 @@ router.get('/:project_id/video', function(req, res, next) {
             {
               "contents_id": item.contents_id,
               "contents_name": item.contents_name,
-              "contents_time": item.contents_time,
+              "contents_target": item.contents_target,
               "thumbnail_url": item.thumbnail_url,
               "contents_url": item.contents_url
             }
