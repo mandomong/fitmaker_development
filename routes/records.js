@@ -22,11 +22,11 @@ function isLoggedIn(req, res, next) {
 
     if (!req.isAuthenticated()) {
 
-        var ERROR = {
+        var error = {
             "code": "E0401",
             "message": "로그인이 필요합니다..."
         };
-        next(ERROR);
+        next(error);
 
         //var err = new Error('로그인이 필요합니다...');
         //err.status = 401;
@@ -37,7 +37,7 @@ function isLoggedIn(req, res, next) {
 }
 
 // --- 16. 운동기록 --- //
-router.route('/').post(isLoggedIn, function (req, res, next) {
+router.post("/", isLoggedIn, function (req, res, next) {
 
     var user_id = req.user.id;
     var user_name = req.user.name;
@@ -124,52 +124,54 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
     //뱃지 중복조회
     function checkBadges(badge_id, connection, callback) {
 
+        if (badge_id === 7) {
+            callback(null, 7, connection);
+        } else {
+            var sql = "SELECT badge_id " +
+                "      FROM user_badge " +
+                "      WHERE user_id = ? ";
 
-        var sql = "SELECT badge_id " +
-          "      FROM user_badge " +
-          "      WHERE user_id = ? ";
+
+            connection.query(sql, [user_id], function (err, results) {
+
+                if (err) {
+                    connection.release();
+                    callback(err);
+                } else {
 
 
-        connection.query(sql, [user_id], function (err, results) {
 
-            if (err) {
-                connection.release();
-                callback(err);
-            } else {
+                    var mybadges = [];
 
-                if (badge_id === 7) {
-                    callback(null, 7, connection);
-                }
-
-                var mybadges = [];
-
-                function iterator(item, callback) {
-                    mybadges.push(item.badge_id);
-                    callback(null);
-                }
-
-                async.eachSeries(results, iterator, function (err) {
-                    if (err) {
-                        connection.release();
-                        callback(err);
-                    } else {
-
-                        if (mybadges.indexOf(badge_id) === -1) {
-                            callback(null, badge_id, connection);
-                        } else {
-                            callback(null, 7, connection);
-                        }
+                    function iterator(item, callback) {
+                        mybadges.push(item.badge_id);
+                        callback(null);
                     }
-                });
 
-            }
-        });
+                    async.eachSeries(results, iterator, function (err) {
+                        if (err) {
+                            connection.release();
+                            callback(err);
+                        } else {
+
+                            if (mybadges.indexOf(badge_id) === -1) {
+                                callback(null, badge_id, connection);
+                            } else {
+                                callback(null, 7, connection);
+                            }
+                        }
+                    });
+
+                }
+            });
+        }
+
+
     }
 
     //뱃지 저장
     function insertBadge(badge_id, connection, callback) {
         if (badge_id === 7) {
-
             callback(null, 7, connection);
         } else {
 
@@ -204,7 +206,7 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
             connection.release();
 
             if (err){
-                
+
                 callback(err);
             }else{
                 var regTokenArr = [];
