@@ -45,7 +45,7 @@ router.post("/", isLoggedIn, function (req, res, next) {
     //운동기록
     function insertRecord(connection, callback) {
         var sql = "INSERT INTO fitmakerdb.record (project_id, course_seq, playdate) " +
-          "       VALUES (?, ?, DATE(date_format(CONVERT_TZ(now(), '+00:00', '+9:00'), '%Y-%m-%d %H-%i-%s'))) ";
+          "       VALUES (?, ?, DATE(date_format(CONVERT_TZ(now(), '+00:00', '+13:00'), '%Y-%m-%d %H-%i-%s'))) ";
         var project_id = req.body.project_id;
         var course_seq = req.body.course_seq;
 
