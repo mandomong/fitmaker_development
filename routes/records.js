@@ -260,7 +260,7 @@ router.post("/", isLoggedIn, function (req, res, next) {
         message.addNotification("title", "FITMAKER");
         //내용 ex) ~~님이 운동을 완료하였습니다
 
-        //message.addNotification("body", parser);
+        message.addNotification("body", parser);
         message.addNotification("icon", "fit_logo");
 
         var regTokens = [];
