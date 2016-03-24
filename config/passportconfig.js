@@ -128,7 +128,6 @@ module.exports = function(passport) {
                                     }
                                 });
                             }else{
-                                connection.release();
                                 var user = {
                                     //"result":"로그인이 정상적으로 처리되었습니다",
                                     "id": results[0].user_id,

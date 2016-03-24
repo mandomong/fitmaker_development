@@ -78,6 +78,18 @@ router.get('/:project_id', function (req, res, next) {
   var project_id = req.params.project_id;
   var user_id = req.user.id;
 
+  if (!project_id) {
+
+    var ERROR = {
+      "error" : {
+        "code":"E0015",
+        "message":"프로젝트 페이지 요청에 실패하였습니다..."
+      }
+    };
+    next(ERROR);
+
+  }
+
   // 코스 가져오기
   function selectCourses(connection, callback) {
     var sql = "SELECT currics.course_id, currics.course_seq " +
