@@ -201,10 +201,10 @@ router.route('/').post(isLoggedIn, function (req, res, next) {
 
         connection.query(sql, [user_id, user_id], function(err, results){
 
-
+            connection.release();
 
             if (err){
-                connection.release();
+                
                 callback(err);
             }else{
                 var regTokenArr = [];
