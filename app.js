@@ -6,6 +6,8 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var session = require('express-session');
 var passport = require('passport');
+var redis = require('redis');
+var RedisStore = require('connect-redis')(session);
 
 global.pool = require('./config/dbpool');
 require('./config/passportconfig')(passport);
@@ -42,9 +44,21 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
+var client = new redis.createClient({
+  "host" : process.env.FITMAKER_SERVER,
+  "port" : process.env.FITMAKER_REDIS_PORT
+});
+client.on("error", function (err) {
+  console.log("Error " + err);
+});
+
 //3. express 초기화
 app.use(session({
-  //"secret": "i2+oCQts4kysnjc67CkdwuO3jSlY6r/cJDzTr11qUUg=",
+  "store" : new RedisStore({
+    "host" : process.env.FITMAKER_SERVER,
+    "port" : process.env.FITMAKER_REDIS_PORT,
+    "client": client
+  }),
   "secret": process.env.FITMAKER_SERVER_KEY,
   "cookie": { "maxAge": 86400000 },
   "resave": true,
