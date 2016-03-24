@@ -148,7 +148,7 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
     function selectAllCurriculum(connection, callback){
 
         var sql = "SELECT  curri_id, curri_name, curri_photourl, curri_type, curri_info " +
-          "      FROM curriculum  ";
+          "        FROM curriculum  ";
 
 
         connection.query(sql, function(err, results){
@@ -296,30 +296,18 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
                                         callback(err);
                                     } else {
 
-                                        var i = 0;
-
                                         function iterator(item, callback) {
-                                            if(curriculum[i].curri_id === item.curri_id) {
-                                                curriculum[i].contents.push({
-                                                    "contents_id" : item.contents_id,
-                                                    "contents_name" : item.contents_name,
-                                                    "contents_target" : item.contents_target,
-                                                    "contents_url" : item.contents_url,
-                                                    "thumbnail_url" : item.thumbnail_url
-                                                });
-                                            } else {
-                                                i++;
-                                                if(i < curriculum.length) {
-                                                    curriculum[i].contents.push({
-                                                        "contents_id" : item.contents_id,
-                                                        "contents_name" : item.contents_name,
-                                                        "contents_target" : item.contents_target,
-                                                        "contents_url" : item.contents_url,
-                                                        "thumbnail_url" : item.thumbnail_url
-                                                    });
-                                                }
 
-                                            }
+                                            var idx = item.i;
+
+
+                                            curriculum[idx].contents.push({
+                                                "contents_id": item.contents_id,
+                                                "contents_name": item.contents_name,
+                                                "contents_target": item.contents_target,
+                                                "contents_url": item.contents_url,
+                                                "thumbnail_url": item.thumbnail_url
+                                            });
 
                                             callback(null);
                                         }
@@ -327,10 +315,12 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
                                         async.eachSeries(results, iterator, function (err) {
                                             if (err) {
                                                 callback(err);
+                                            } else {
+                                                callback(null, curriculum);
                                             }
                                         });
 
-                                        callback(null, curriculum);
+
 
                                     }
                                 });
