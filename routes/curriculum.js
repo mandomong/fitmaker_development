@@ -348,6 +348,7 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
 
                             async.waterfall([getConnection, selectAllCurriculum, selectALLContents, makeAllJSON],function(err,result){
                                 if(err){
+
                                     var ERROR = {
                                         "error" : {
                                             "code":"E0013",

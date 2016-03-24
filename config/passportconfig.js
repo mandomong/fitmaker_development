@@ -27,6 +27,7 @@ module.exports = function(passport) {
                     if (err) {
                         done(err);
                     } else {
+                        console.log(results[0]);
                         var user = { // results로부터 가져온다.
                             "id": results[0].user_id,
                             "username": results[0].user_name,
