@@ -141,10 +141,10 @@ router.get('/:project_id', function (req, res, next) {
 
     connection.query(sql, [project_id], function (err, results) {
 
-      if (err) {
-        callback(err);
-      } else {
-        var contents = [];
+        if (err) {
+          callback(err);
+        } else {
+          var contents = [];
 
         function iterator(item, callback) {
 

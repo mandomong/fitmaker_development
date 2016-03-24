@@ -187,13 +187,14 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
     // 커리큘럼의 대표 컨텐츠목록 가져오기
     function selectContents(exctype, curriculum, connection, callback) {
         console.log(exctype);
-        var sql = "SELECT v.curri_id, v.course_id, v.course_name, v.contents_id, v.contents_name, v.contents_target, v.contents_url, v.thumbnail_url " +
-          "      FROM v_curri_maincourse v JOIN (SELECT c.curri_id " +
-          "                                      FROM curriculum c join (SELECT  exctype_id, curri_id " +
-          "                                                              FROM exctype_curri " +
-          "                                                              WHERE exctype_id = ?) ec " +
-          "                                                        ON (c.curri_id = ec.curri_id)) ecc " +
-          "                                ON (v.curri_id = ecc.curri_id) ";
+        var sql = "SELECT ecc.i, v.contents_id, v.contents_name, v.contents_target, v.contents_url, v.thumbnail_url " +
+            "      FROM v_curri_maincourse v JOIN (SELECT  c.curri_id, @i := @i + 1 AS i " +
+            "                                      FROM curriculum c join (SELECT  exctype_id, curri_id " +
+            "                                                              FROM exctype_curri " +
+            "                                                              WHERE exctype_id = 1) ec " +
+            "                                                        ON (c.curri_id = ec.curri_id) " +
+            "                                JOIN (SELECT @i := -1) dummy) ecc " +
+            "                                ON (v.curri_id = ecc.curri_id) ";
 
 
         connection.query(sql, [exctype.exctype_id], function (err, results) {
@@ -205,30 +206,22 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
                 callback(err);
             } else {
 
-                var i = 0;
 
                 function iterator(item, callback) {
-                    if(curriculum[i].curri_id === item.curri_id) {
-                        curriculum[i].contents.push({
-                            "contents_id" : item.contents_id,
-                            "contents_name" : item.contents_name,
-                            "contents_target" : item.contents_target,
-                            "contents_url" : item.contents_url,
-                            "thumbnail_url" : item.thumbnail_url
-                        });
-                    } else {
-                        i++; // 흠...
-                        if(i < curriculum.length) {
-                            curriculum[i].contents.push({
-                                "contents_id" : item.contents_id,
-                                "contents_name" : item.contents_name,
-                                "contents_target" : item.contents_target,
-                                "contents_url" : item.contents_url,
-                                "thumbnail_url" : item.thumbnail_url
-                            });
-                        }
 
-                    }
+                    var idx = item.i;
+
+                    console.log("curriculum[idx].curri_id , item.curri_id");
+                    console.log(curriculum[idx].curri_id, item.curri_id);
+
+
+                    curriculum[idx].contents.push({
+                        "contents_id": item.contents_id,
+                        "contents_name": item.contents_name,
+                        "contents_target": item.contents_target,
+                        "contents_url": item.contents_url,
+                        "thumbnail_url": item.thumbnail_url
+                    });
 
                     callback(null);
                 }
@@ -236,12 +229,19 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
                 async.eachSeries(results, iterator, function (err) {
                     if (err) {
                         callback(err);
+                    } else {
+                        callback(null, exctype, curriculum);
                     }
                 });
 
-                callback(null, exctype, curriculum);
 
             }
+
+
+
+
+
+
         });
     }
 
