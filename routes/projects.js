@@ -257,6 +257,9 @@ router.get('/:project_id', function (req, res, next) {
         var check = results[0].playcheck > 0 ? true : false;
         var position = results[0].seq;
 
+        console.log("check, position");
+        console.log(check, position);
+
         if (check) {
           position = position - 1;
         } else {
