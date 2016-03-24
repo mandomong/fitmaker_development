@@ -135,10 +135,12 @@ router.route('/').get(isLoggedIn, function (req, res, next) {
                 async.eachSeries(results, iterator, function (err) {
                     if (err) {
                         callback(err);
+                    } else {
+                        callback(null, exctype, curriculum, connection);
                     }
                 });
-                console.log(curriculum);
-                callback(null, exctype, curriculum, connection);
+
+
 
             }
         });
