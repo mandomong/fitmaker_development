@@ -6,8 +6,8 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var session = require('express-session');
 var passport = require('passport');
-var redis = require('redis');
-var RedisStore = require('connect-redis')(session);
+//var redis = require('redis');
+//var RedisStore = require('connect-redis')(session);
 
 global.pool = require('./config/dbpool');
 require('./config/passportconfig')(passport);
