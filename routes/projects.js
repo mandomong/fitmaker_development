@@ -244,9 +244,9 @@ router.get('/:project_id', function (req, res, next) {
   // 오늘의 운동
   function selectToday(courses, projects_ing, connection, callback) {
     var sql = "SELECT (max(course_seq) + 1) AS seq, " +
-      "             (CASE WHEN DATE(max(DATE(date_format(CONVERT_TZ(playdate, '+00:00', '+9:00'), '%Y-%m-%d %H-%i-%s')))) = DATE(date_format(CONVERT_TZ(now(), '+00:00', '+9:00'), '%Y-%m-%d %H-%i-%s')) THEN 1 ELSE 0 END) AS playcheck " +
-      "      FROM record " +
-      "      WHERE project_id = ? ";
+        "             (CASE WHEN DATE(max(DATE(date_format(CONVERT_TZ(playdate, '+00:00', '+9:00'), '%Y-%m-%d %H-%i-%s')))) = DATE(date_format(CONVERT_TZ(now(), '+00:00', '+9:00'), '%Y-%m-%d %H-%i-%s')) THEN 1 ELSE 0 END) AS playcheck " +
+        "      FROM record " +
+        "      WHERE project_id = ? ";
 
 
     connection.query(sql, [project_id], function (err, results) {
